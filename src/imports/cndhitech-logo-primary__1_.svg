@@ -1,0 +1,27 @@
+<svg viewBox="0 0 640 180" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="hexFill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0E2A47"/>
+      <stop offset="100%" stop-color="#163A5F"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon: hexagon = hazardous-zone containment, bolt = the energy safely contained -->
+  <g transform="translate(20,20)">
+    <polygon points="70,4 126,37 126,103 70,136 14,103 14,37"
+             fill="url(#hexFill)" stroke="#F2A71B" stroke-width="4"/>
+    <!-- inner safety ring -->
+    <polygon points="70,20 112,45 112,95 70,120 28,95 28,45"
+             fill="none" stroke="#F2A71B" stroke-width="1.5" opacity="0.45"/>
+    <!-- contained bolt -->
+    <path d="M78 34 L46 78 L66 78 L60 106 L96 60 L74 60 Z"
+          fill="#F2A71B"/>
+  </g>
+
+  <!-- Wordmark -->
+  <g transform="translate(168,0)" font-family="Arial, Helvetica, sans-serif">
+    <text x="0" y="88" font-size="54" font-weight="700" letter-spacing="1" fill="#0E2A47">CND</text>
+    <text x="118" y="88" font-size="54" font-weight="700" letter-spacing="1" fill="#F2A71B">HITECH</text>
+    <text x="2" y="114" font-size="15" font-weight="600" letter-spacing="3.5" fill="#5B6B78">EXPLOSION PROOF &amp; PROCESS INSTRUMENTATION</text>
+  </g>
+</svg>
