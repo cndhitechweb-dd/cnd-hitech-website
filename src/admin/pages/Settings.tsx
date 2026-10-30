@@ -1,22 +1,24 @@
 import { useEffect, useState } from 'react'
 import { getAuthRecord, saveSettings, useStore } from '../../data/store'
 import { createAdminUser, updateAdmin, useSession, verifyPassword } from '../auth'
-import { Button, Card, Field, inputCls, PageHeader, useToast } from '../ui'
+import { Button, Card, Field, Icon, inputCls, PageHeader, useToast } from '../ui'
 
 export default function SettingsPage() {
   const s = useStore()
   const session = useSession()
   const toast = useToast()
 
-  // ── Profile (display name + username) ────────────────────────────────────
+  // ── Profile ───────────────────────────────────────────────────────────────
   const [name, setName] = useState('')
   const [username, setUsername] = useState('')
 
   // ── Change password ───────────────────────────────────────────────────────
   const [pw, setPw] = useState({ current: '', next: '', confirm: '' })
+  const [showPw, setShowPw] = useState({ current: false, next: false, confirm: false })
 
-  // ── Create new admin user ─────────────────────────────────────────────────
-  const [nu, setNu] = useState({ username: '', password: '', confirm: '', name: '' })
+  // ── Change login credentials (username + password together) ───────────────
+  const [cred, setCred] = useState({ username: '', password: '', confirm: '' })
+  const [showCred, setShowCred] = useState({ password: false, confirm: false })
 
   const [err, setErr] = useState<Record<string, string>>({})
   const n = s.settings.notifications
@@ -50,33 +52,45 @@ export default function SettingsPage() {
     toast('success', 'Password changed')
   }
 
-  const createUser = async () => {
+  const saveCredentials = async () => {
     const e: Record<string, string> = {}
-    if (!nu.username.trim()) e.nuUsername = 'Username is required'
-    if (nu.password.length < 6) e.nuPassword = 'Use at least 6 characters'
-    if (nu.confirm !== nu.password) e.nuConfirm = 'Passwords do not match'
+    if (!cred.username.trim()) e.credUsername = 'Username is required'
+    if (cred.password.length < 6) e.credPassword = 'Use at least 6 characters'
+    if (cred.confirm !== cred.password) e.credConfirm = 'Passwords do not match'
     setErr(e)
     if (Object.keys(e).length) return
-    await createAdminUser(nu.username.trim(), nu.password, nu.name.trim() || nu.username.trim())
-    setNu({ username: '', password: '', confirm: '', name: '' })
-    toast('success', `User "${nu.username.trim()}" created — they can now log in`)
+    await createAdminUser(cred.username.trim(), cred.password, name || cred.username.trim())
+    setUsername(cred.username.trim())
+    setCred({ username: '', password: '', confirm: '' })
+    toast('success', 'Login credentials updated — use the new username & password next time you log in')
   }
 
   const toggle = (k: keyof typeof n) =>
     saveSettings({ ...s.settings, notifications: { ...n, [k]: !n[k] } }).then(() => toast('success', 'Preferences saved'))
+
+  const eyeBtn = (show: boolean, onToggle: () => void) => (
+    <button
+      type="button"
+      aria-label={show ? 'Hide password' : 'Show password'}
+      onClick={onToggle}
+      className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-[#7B8A99] hover:text-[#0E2A47]"
+    >
+      <Icon name={show ? 'eyeOff' : 'eye'} className="w-[18px] h-[18px]" />
+    </button>
+  )
 
   return (
     <>
       <PageHeader title="Settings" subtitle={`Signed in as ${session?.username ?? session?.name ?? ''}`} />
       <div className="grid lg:grid-cols-2 gap-5 max-w-5xl">
 
-        {/* ── Profile ── */}
+        {/* ── Display name ── */}
         <Card title="Admin profile">
           <div className="space-y-4">
             <Field label="Display name" error={err.name}>
               <input className={inputCls} value={name} autoComplete="name" onChange={e => setName(e.target.value)} />
             </Field>
-            <Field label="Username" error={err.username}>
+            <Field label="Current username" error={err.username} hint="This is what you type to log in.">
               <input className={inputCls} value={username} autoComplete="username" onChange={e => setUsername(e.target.value)} />
             </Field>
             <Button variant="primary" onClick={saveProfile}>Save profile</Button>
@@ -87,37 +101,51 @@ export default function SettingsPage() {
         <Card title="Change password">
           <div className="space-y-4">
             <Field label="Current password" error={err.pwCurrent}>
-              <input type="password" autoComplete="current-password" className={inputCls} value={pw.current} onChange={e => setPw({ ...pw, current: e.target.value })} />
+              <div className="relative">
+                <input type={showPw.current ? 'text' : 'password'} autoComplete="current-password" className={`${inputCls} pr-11`} value={pw.current} onChange={e => setPw({ ...pw, current: e.target.value })} />
+                {eyeBtn(showPw.current, () => setShowPw(p => ({ ...p, current: !p.current })))}
+              </div>
             </Field>
             <Field label="New password" error={err.pwNext} hint="At least 6 characters.">
-              <input type="password" autoComplete="new-password" className={inputCls} value={pw.next} onChange={e => setPw({ ...pw, next: e.target.value })} />
+              <div className="relative">
+                <input type={showPw.next ? 'text' : 'password'} autoComplete="new-password" className={`${inputCls} pr-11`} value={pw.next} onChange={e => setPw({ ...pw, next: e.target.value })} />
+                {eyeBtn(showPw.next, () => setShowPw(p => ({ ...p, next: !p.next })))}
+              </div>
             </Field>
             <Field label="Confirm new password" error={err.pwConfirm}>
-              <input type="password" autoComplete="new-password" className={inputCls} value={pw.confirm} onChange={e => setPw({ ...pw, confirm: e.target.value })} />
+              <div className="relative">
+                <input type={showPw.confirm ? 'text' : 'password'} autoComplete="new-password" className={`${inputCls} pr-11`} value={pw.confirm} onChange={e => setPw({ ...pw, confirm: e.target.value })} />
+                {eyeBtn(showPw.confirm, () => setShowPw(p => ({ ...p, confirm: !p.confirm })))}
+              </div>
             </Field>
             <Button variant="primary" onClick={savePassword}>Update password</Button>
           </div>
         </Card>
 
-        {/* ── Create new user ── */}
-        <Card title="Create / replace admin user" className="lg:col-span-2">
-          <p className="text-sm text-[#5B6B78] mb-4">Use this to set up a new login credential. This replaces the current admin account.</p>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="Username" error={err.nuUsername}>
-              <input className={inputCls} value={nu.username} autoComplete="off" placeholder="e.g. cndadmin" onChange={e => setNu({ ...nu, username: e.target.value })} />
+        {/* ── Change login credentials ── */}
+        <Card title="Change login credentials" className="lg:col-span-2">
+          <p className="text-sm text-[#5B6B78] mb-4">
+            Set a new username and password for logging into the admin panel. After saving, use the new credentials on the next login.
+          </p>
+          <div className="grid sm:grid-cols-3 gap-4">
+            <Field label="New username" error={err.credUsername}>
+              <input className={inputCls} value={cred.username} autoComplete="off" placeholder="e.g. cndadmin" onChange={e => setCred({ ...cred, username: e.target.value })} />
             </Field>
-            <Field label="Display name (optional)">
-              <input className={inputCls} value={nu.name} autoComplete="off" placeholder="e.g. CND Admin" onChange={e => setNu({ ...nu, name: e.target.value })} />
+            <Field label="New password" error={err.credPassword} hint="At least 6 characters.">
+              <div className="relative">
+                <input type={showCred.password ? 'text' : 'password'} autoComplete="new-password" className={`${inputCls} pr-11`} value={cred.password} onChange={e => setCred({ ...cred, password: e.target.value })} />
+                {eyeBtn(showCred.password, () => setShowCred(p => ({ ...p, password: !p.password })))}
+              </div>
             </Field>
-            <Field label="Password" error={err.nuPassword} hint="At least 6 characters.">
-              <input type="password" autoComplete="new-password" className={inputCls} value={nu.password} onChange={e => setNu({ ...nu, password: e.target.value })} />
-            </Field>
-            <Field label="Confirm password" error={err.nuConfirm}>
-              <input type="password" autoComplete="new-password" className={inputCls} value={nu.confirm} onChange={e => setNu({ ...nu, confirm: e.target.value })} />
+            <Field label="Confirm password" error={err.credConfirm}>
+              <div className="relative">
+                <input type={showCred.confirm ? 'text' : 'password'} autoComplete="new-password" className={`${inputCls} pr-11`} value={cred.confirm} onChange={e => setCred({ ...cred, confirm: e.target.value })} />
+                {eyeBtn(showCred.confirm, () => setShowCred(p => ({ ...p, confirm: !p.confirm })))}
+              </div>
             </Field>
           </div>
           <div className="mt-4">
-            <Button variant="primary" onClick={createUser}>Create user</Button>
+            <Button variant="primary" onClick={saveCredentials}>Save credentials</Button>
           </div>
         </Card>
 
