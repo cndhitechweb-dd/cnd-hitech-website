@@ -3,7 +3,9 @@ import { getAuthRecord, setAuthRecord, type AuthRecord } from '../data/store'
 
 /*
   Client-side admin authentication.
-  - No password or secret is hard-coded: the first admin account is created on first visit.
+  - Login uses username + password only (no email).
+  - First admin is auto-seeded with username "admin" and password "cndadmin2024".
+  - Additional users can only be created from inside the admin panel (Settings page).
   - Passwords are stored only as salted PBKDF2 hashes; the session lives in sessionStorage (cleared on tab close, 8h max).
   - IMPORTANT: browser-only auth cannot truly protect data. Before going live, replace this module and the
     Repository in data/store.ts with a server-side API (auth + database + file storage).
@@ -24,7 +26,7 @@ async function hashPassword(password: string, salt: string) {
   return toHex(bits)
 }
 
-interface Session { email: string; name: string; expires: number }
+interface Session { username: string; name: string; expires: number }
 const listeners = new Set<() => void>()
 let cached: Session | null | undefined
 
@@ -50,24 +52,42 @@ export function useSession() {
   )
 }
 
+/** Seeds the default admin account on first load if none exists. */
+export async function seedDefaultAdmin() {
+  const existing = await getAuthRecord()
+  if (existing) return
+  const salt = randomHex()
+  const rec: AuthRecord = {
+    name: 'Admin',
+    email: 'admin',
+    salt,
+    hash: await hashPassword('cndadmin2024', salt),
+  }
+  await setAuthRecord(rec)
+}
+
 export const hasAdminAccount = async () => !!(await getAuthRecord())
 
-export async function createAdmin(name: string, email: string, password: string) {
-  if (await getAuthRecord()) throw new Error('An admin account already exists.')
+/** Create / replace admin user — only callable from inside the admin panel after login. */
+export async function createAdminUser(username: string, password: string, displayName: string) {
   const salt = randomHex()
-  const rec: AuthRecord = { name, email: email.trim().toLowerCase(), salt, hash: await hashPassword(password, salt) }
+  const rec: AuthRecord = {
+    name: displayName || username,
+    email: username.trim().toLowerCase(),
+    salt,
+    hash: await hashPassword(password, salt),
+  }
   await setAuthRecord(rec)
-  writeSession({ email: rec.email, name, expires: Date.now() + SESSION_MS })
 }
 
 let fails = 0
 let lockedUntil = 0
-export async function login(email: string, password: string): Promise<'ok' | 'invalid' | 'locked'> {
+export async function login(username: string, password: string): Promise<'ok' | 'invalid' | 'locked'> {
   if (Date.now() < lockedUntil) return 'locked'
   const rec = await getAuthRecord()
   const ok =
     !!rec &&
-    rec.email === email.trim().toLowerCase() &&
+    rec.email === username.trim().toLowerCase() &&
     (await hashPassword(password, rec.salt)) === rec.hash
   if (!ok) {
     fails++
@@ -75,7 +95,7 @@ export async function login(email: string, password: string): Promise<'ok' | 'in
     return 'invalid'
   }
   fails = 0
-  writeSession({ email: rec.email, name: rec.name, expires: Date.now() + SESSION_MS })
+  writeSession({ username: rec.email, name: rec.name, expires: Date.now() + SESSION_MS })
   return 'ok'
 }
 export const logout = () => writeSession(null)
@@ -84,16 +104,17 @@ export async function verifyPassword(password: string) {
   const rec = await getAuthRecord()
   return !!rec && (await hashPassword(password, rec.salt)) === rec.hash
 }
-export async function updateAdmin(patch: { name?: string; email?: string; newPassword?: string }) {
+export async function updateAdmin(patch: { name?: string; username?: string; newPassword?: string }) {
   const rec = await getAuthRecord()
   if (!rec) throw new Error('No admin account')
   const next = { ...rec }
   if (patch.name) next.name = patch.name
-  if (patch.email) next.email = patch.email.trim().toLowerCase()
+  if (patch.username) next.email = patch.username.trim().toLowerCase()
   if (patch.newPassword) {
     next.salt = randomHex()
     next.hash = await hashPassword(patch.newPassword, next.salt)
   }
   await setAuthRecord(next)
-  writeSession({ email: next.email, name: next.name, expires: Date.now() + SESSION_MS })
+  const session = readSession()
+  writeSession({ username: next.email, name: next.name, expires: session?.expires ?? Date.now() + SESSION_MS })
 }

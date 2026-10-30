@@ -2,9 +2,10 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import { initStore } from './data/store'
+import { seedDefaultAdmin } from './admin/auth'
 import './index.css'
 
-initStore().finally(() => {
+initStore().then(() => seedDefaultAdmin()).finally(() => {
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
       <App />

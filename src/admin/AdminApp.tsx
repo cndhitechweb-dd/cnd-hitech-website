@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { createBrowserRouter, Link, Navigate, NavLink, Outlet, RouterProvider, useLocation, useNavigate } from 'react-router'
 import { LogoImage } from '../components/Logo'
-import { createAdmin, hasAdminAccount, login, logout, useSession } from './auth'
+import { login, logout, useSession } from './auth'
 import { Button, Field, Icon, inputCls, ToastProvider, useToast } from './ui'
 import Dashboard from './pages/Dashboard'
 import ProductsList from './pages/ProductsList'
@@ -83,7 +83,7 @@ function Shell() {
           <div className="ml-auto flex items-center gap-3">
             <div className="hidden sm:block text-right leading-tight">
               <div className="text-sm font-semibold">{session.name}</div>
-              <div className="text-[11px] text-[#7B8A99]">{session.email}</div>
+              <div className="text-[11px] text-[#7B8A99]">{session.username}</div>
             </div>
             <div className="w-9 h-9 rounded-full bg-[#0E2A47] text-[#F2A71B] font-display font-bold text-sm flex items-center justify-center">{session.name.slice(0, 1).toUpperCase()}</div>
             <Button size="sm" icon="logout" onClick={doLogout} className="hidden sm:inline-flex">Logout</Button>
@@ -100,38 +100,29 @@ function Login() {
   const navigate = useNavigate()
   const location = useLocation()
   const toast = useToast()
-  const [mode, setMode] = useState<'loading' | 'login' | 'setup'>('loading')
-  const [f, setF] = useState({ name: '', email: '', password: '', confirm: '' })
+  const [f, setF] = useState({ username: '', password: '' })
   const [show, setShow] = useState(false)
-  const [err, setErr] = useState<Partial<Record<'name' | 'email' | 'password' | 'confirm' | 'form', string>>>({})
+  const [err, setErr] = useState<Partial<Record<'username' | 'password' | 'form', string>>>({})
   const [busy, setBusy] = useState(false)
 
-  useEffect(() => { hasAdminAccount().then(has => setMode(has ? 'login' : 'setup')) }, [])
   useEffect(() => { document.title = 'Admin Login · CND HI-TECH CO.' }, [])
   if (session) return <Navigate to={(location.state as { from?: string } | null)?.from ?? '/admin'} replace />
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     const errs: typeof err = {}
-    if (mode === 'setup' && !f.name.trim()) errs.name = 'Name is required'
-    if (!f.email.trim()) errs.email = 'Email is required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) errs.email = 'Enter a valid email address'
+    if (!f.username.trim()) errs.username = 'Username is required'
     if (!f.password) errs.password = 'Password is required'
-    else if (mode === 'setup' && f.password.length < 10) errs.password = 'Use at least 10 characters'
-    if (mode === 'setup' && f.confirm !== f.password) errs.confirm = 'Passwords do not match'
     setErr(errs)
     if (Object.keys(errs).length) return
     setBusy(true)
     try {
-      if (mode === 'setup') {
-        await createAdmin(f.name.trim(), f.email, f.password)
-        toast('success', 'Admin account created')
-        navigate('/admin', { replace: true })
-      } else {
-        const r = await login(f.email, f.password)
-        if (r === 'invalid') setErr({ form: 'Invalid email or password.' })
-        else if (r === 'locked') setErr({ form: 'Too many failed attempts. Please wait 30 seconds and try again.' })
-        else navigate((location.state as { from?: string } | null)?.from ?? '/admin', { replace: true })
+      const r = await login(f.username, f.password)
+      if (r === 'invalid') setErr({ form: 'Invalid username or password.' })
+      else if (r === 'locked') setErr({ form: 'Too many failed attempts. Please wait 30 seconds and try again.' })
+      else {
+        toast('success', 'Signed in')
+        navigate((location.state as { from?: string } | null)?.from ?? '/admin', { replace: true })
       }
     } catch (ex) {
       setErr({ form: ex instanceof Error ? ex.message : 'Something went wrong.' })
@@ -143,39 +134,24 @@ function Login() {
   return (
     <div className="min-h-screen bg-[#071829] flex items-center justify-center p-4 font-body relative overflow-hidden">
       <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(#F2A71B 1px, transparent 1px), linear-gradient(90deg, #F2A71B 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-sm">
         <div className="flex justify-center mb-8"><LogoImage height={46} colorFilter="classic-red-white" /></div>
         <form onSubmit={submit} noValidate className="bg-white rounded-2xl shadow-2xl p-7 md:p-8 space-y-4">
           <div>
-            <h1 className="font-display font-bold text-xl text-[#0E2A47]">{mode === 'setup' ? 'Create admin account' : 'Admin sign in'}</h1>
-            <p className="text-sm text-[#5B6B78] mt-1">{mode === 'setup' ? 'No admin exists yet. Set up the first administrator.' : 'Product management for CND HI-TECH CO.'}</p>
+            <h1 className="font-display font-bold text-xl text-[#0E2A47]">Admin sign in</h1>
+            <p className="text-sm text-[#5B6B78] mt-1">Product management for CND HI-TECH CO.</p>
           </div>
           {err.form && <div role="alert" className="flex gap-2 text-sm text-[#C62828] bg-[#FDECEC] rounded-lg px-3 py-2.5"><Icon name="alert" className="w-4 h-4 mt-0.5 shrink-0" />{err.form}</div>}
-          {mode === 'loading' && <p className="text-sm text-[#5B6B78]">Loading…</p>}
-          {mode !== 'loading' && (
-            <>
-              {mode === 'setup' && (
-                <Field label="Full name" required error={err.name}>
-                  <input className={inputCls} value={f.name} autoComplete="name" onChange={e => setF({ ...f, name: e.target.value })} />
-                </Field>
-              )}
-              <Field label="Email" required error={err.email}>
-                <input className={inputCls} type="email" value={f.email} autoComplete="username" onChange={e => setF({ ...f, email: e.target.value })} />
-              </Field>
-              <Field label="Password" required error={err.password}>
-                <div className="relative">
-                  <input className={`${inputCls} pr-11`} type={show ? 'text' : 'password'} value={f.password} autoComplete={mode === 'setup' ? 'new-password' : 'current-password'} onChange={e => setF({ ...f, password: e.target.value })} />
-                  <button type="button" aria-label={show ? 'Hide password' : 'Show password'} onClick={() => setShow(s => !s)} className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-[#7B8A99] hover:text-[#0E2A47]"><Icon name={show ? 'eyeOff' : 'eye'} className="w-[18px] h-[18px]" /></button>
-                </div>
-              </Field>
-              {mode === 'setup' && (
-                <Field label="Confirm password" required error={err.confirm}>
-                  <input className={inputCls} type={show ? 'text' : 'password'} value={f.confirm} autoComplete="new-password" onChange={e => setF({ ...f, confirm: e.target.value })} />
-                </Field>
-              )}
-              <Button type="submit" variant="primary" className="w-full" disabled={busy}>{busy ? 'Please wait…' : mode === 'setup' ? 'Create account & sign in' : 'Login'}</Button>
-            </>
-          )}
+          <Field label="Username" required error={err.username}>
+            <input className={inputCls} value={f.username} autoComplete="username" autoFocus onChange={e => setF({ ...f, username: e.target.value })} />
+          </Field>
+          <Field label="Password" required error={err.password}>
+            <div className="relative">
+              <input className={`${inputCls} pr-11`} type={show ? 'text' : 'password'} value={f.password} autoComplete="current-password" onChange={e => setF({ ...f, password: e.target.value })} />
+              <button type="button" aria-label={show ? 'Hide password' : 'Show password'} onClick={() => setShow(s => !s)} className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-[#7B8A99] hover:text-[#0E2A47]"><Icon name={show ? 'eyeOff' : 'eye'} className="w-[18px] h-[18px]" /></button>
+            </div>
+          </Field>
+          <Button type="submit" variant="primary" className="w-full" disabled={busy}>{busy ? 'Please wait…' : 'Login'}</Button>
         </form>
         <p className="text-center mt-5 text-xs text-[#5E7A96]"><a href="/" className="hover:text-white">← Back to website</a></p>
       </div>
