@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getAuthRecord, saveSettings, useStore } from '../../data/store'
-import { createAdminUser, updateAdmin, useSession, verifyPassword } from '../auth'
+import { createAdminUser, deleteAdmin, updateAdmin, useSession, verifyPassword } from '../auth'
 import { Button, Card, Field, Icon, inputCls, PageHeader, useToast } from '../ui'
 
 export default function SettingsPage() {
@@ -19,6 +19,9 @@ export default function SettingsPage() {
   // ── Change login credentials (username + password together) ───────────────
   const [cred, setCred] = useState({ username: '', password: '', confirm: '' })
   const [showCred, setShowCred] = useState({ password: false, confirm: false })
+
+  // ── Delete account ────────────────────────────────────────────────────────
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const [err, setErr] = useState<Record<string, string>>({})
   const n = s.settings.notifications
@@ -158,6 +161,28 @@ export default function SettingsPage() {
             </label>
           ))}
           <p className="text-[11px] text-[#7B8A99] mt-3">Preferences are stored now; email delivery activates once a server-side mailer is connected.</p>
+        </Card>
+
+        {/* ── Danger zone ── */}
+        <Card title="Danger zone" className="lg:col-span-2">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <p className="text-sm font-medium text-[#0E2A47]">Delete admin account</p>
+              <p className="text-sm text-[#5B6B78] mt-0.5">
+                Removes the current login credentials. You will be logged out immediately.
+                The default login (<strong>admin / cndadmin2024</strong>) will be restored on next page load.
+              </p>
+            </div>
+            {!confirmDelete ? (
+              <Button variant="danger" onClick={() => setConfirmDelete(true)}>Delete account</Button>
+            ) : (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-[#C62828] font-medium">Are you sure?</span>
+                <Button variant="danger" onClick={async () => { await deleteAdmin(); window.location.href = '/admin/login' }}>Yes, delete</Button>
+                <Button onClick={() => setConfirmDelete(false)}>Cancel</Button>
+              </div>
+            )}
+          </div>
         </Card>
 
       </div>

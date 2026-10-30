@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { getAuthRecord, setAuthRecord, type AuthRecord } from '../data/store'
+import { getAuthRecord, setAuthRecord, deleteAuthRecord, type AuthRecord } from '../data/store'
 
 /*
   Client-side admin authentication.
@@ -99,6 +99,12 @@ export async function login(username: string, password: string): Promise<'ok' | 
   return 'ok'
 }
 export const logout = () => writeSession(null)
+
+/** Delete the current admin account and log out. Seed will recreate defaults on next load. */
+export async function deleteAdmin() {
+  await deleteAuthRecord()
+  writeSession(null)
+}
 
 export async function verifyPassword(password: string) {
   const rec = await getAuthRecord()

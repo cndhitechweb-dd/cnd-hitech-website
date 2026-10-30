@@ -178,6 +178,7 @@ export interface Repository {
   loadFiles(): Promise<Map<string, Blob>>
   getAuth(): Promise<AuthRecord | null>
   setAuth(rec: AuthRecord): Promise<void>
+  deleteAuth(): Promise<void>
   subscribeExternal(cb: () => void): () => void
   notifyExternal(): void
 }
@@ -228,6 +229,7 @@ const browserRepo: Repository = {
   },
   getAuth: async () => (await tx<AuthRecord | undefined>('kv', 'readonly', s => s.get('auth'))) ?? null,
   setAuth: async rec => { await tx('kv', 'readwrite', s => s.put(rec, 'auth')) },
+  deleteAuth: async () => { await tx('kv', 'readwrite', s => s.delete('auth')) },
   subscribeExternal: cb => {
     if (!channel) return () => {}
     const h = () => cb()
@@ -554,3 +556,4 @@ export const takeQuoteContext = () => { const c = quoteContext; quoteContext = {
 /* ── Auth (client-side session; see notes in admin/auth.ts) ───────────────── */
 export const getAuthRecord = () => repo.getAuth()
 export const setAuthRecord = (r: AuthRecord) => repo.setAuth(r)
+export const deleteAuthRecord = () => repo.deleteAuth()

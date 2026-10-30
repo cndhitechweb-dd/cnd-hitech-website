@@ -154,6 +154,16 @@ function Login() {
           <Button type="submit" variant="primary" className="w-full" disabled={busy}>{busy ? 'Please wait…' : 'Login'}</Button>
         </form>
         <p className="text-center mt-5 text-xs text-[#5E7A96]"><a href="/" className="hover:text-white">← Back to website</a></p>
+        <p className="text-center mt-2 text-xs text-[#5E7A96]">
+          <button type="button" className="hover:text-white underline" onClick={async () => {
+            const { deleteAuthRecord } = await import('../data/store')
+            const { seedDefaultAdmin } = await import('./auth')
+            await deleteAuthRecord()
+            await seedDefaultAdmin()
+            setF({ username: '', password: '' })
+            setErr({ form: 'Credentials reset. Login with username: admin  password: cndadmin2024' })
+          }}>Forgot credentials? Reset to default</button>
+        </p>
       </div>
     </div>
   )
