@@ -106,6 +106,66 @@ export async function deleteAdmin() {
   writeSession(null)
 }
 
+/* ── Password reset ───────────────────────────────────────────────────────── */
+
+const RESET_KEY = 'cnd-admin-reset'
+
+export function generateResetToken(): string {
+  const token = randomHex(32)
+  const expires = Date.now() + 60 * 60 * 1000 // 1 hour
+  localStorage.setItem(RESET_KEY, JSON.stringify({ token, expires }))
+  return token
+}
+
+export function validateResetToken(token: string): boolean {
+  try {
+    const raw = localStorage.getItem(RESET_KEY)
+    if (!raw) return false
+    const { token: stored, expires } = JSON.parse(raw) as { token: string; expires: number }
+    return stored === token && expires > Date.now()
+  } catch { return false }
+}
+
+export async function resetPasswordWithToken(token: string, newPassword: string): Promise<boolean> {
+  if (!validateResetToken(token)) return false
+  const rec = await getAuthRecord()
+  if (!rec) return false
+  const next = { ...rec, salt: randomHex() }
+  next.hash = await hashPassword(newPassword, next.salt)
+  await setAuthRecord(next)
+  localStorage.removeItem(RESET_KEY)
+  return true
+}
+
+/* ── Recovery code ────────────────────────────────────────────────────────── */
+
+export async function hasRecoveryCode(): Promise<boolean> {
+  const rec = await getAuthRecord()
+  return !!(rec?.recoveryHash)
+}
+
+export async function setRecoveryCode(code: string): Promise<void> {
+  const rec = await getAuthRecord()
+  if (!rec) throw new Error('No admin account')
+  const recoverySalt = randomHex()
+  const recoveryHash = await hashPassword(code.trim().toLowerCase(), recoverySalt)
+  await setAuthRecord({ ...rec, recoverySalt, recoveryHash })
+}
+
+/** Verify recovery code then reset password in one step. */
+export async function resetPasswordWithRecovery(
+  code: string, newPassword: string
+): Promise<'ok' | 'wrong-code' | 'no-recovery'> {
+  const rec = await getAuthRecord()
+  if (!rec?.recoverySalt || !rec?.recoveryHash) return 'no-recovery'
+  const codeOk = (await hashPassword(code.trim().toLowerCase(), rec.recoverySalt)) === rec.recoveryHash
+  if (!codeOk) return 'wrong-code'
+  const salt = randomHex()
+  const hash = await hashPassword(newPassword, salt)
+  await setAuthRecord({ ...rec, salt, hash })
+  return 'ok'
+}
+
 export async function verifyPassword(password: string) {
   const rec = await getAuthRecord()
   return !!rec && (await hashPassword(password, rec.salt)) === rec.hash

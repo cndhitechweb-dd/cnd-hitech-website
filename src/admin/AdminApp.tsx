@@ -1,8 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { createBrowserRouter, Link, Navigate, NavLink, Outlet, RouterProvider, useLocation, useNavigate } from 'react-router'
+import { createBrowserRouter, Link, Navigate, NavLink, Outlet, RouterProvider, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { LogoImage } from '../components/Logo'
-import { login, logout, useSession } from './auth'
-import { Button, Field, Icon, inputCls, ToastProvider, useToast } from './ui'
+import { generateResetToken, login, logout, resetPasswordWithRecovery, resetPasswordWithToken, useSession, validateResetToken } from './auth'import { Button, Field, Icon, inputCls, ToastProvider, useToast } from './ui'
 import Dashboard from './pages/Dashboard'
 import ProductsList from './pages/ProductsList'
 import ProductForm from './pages/ProductForm'
@@ -95,6 +94,19 @@ function Shell() {
   )
 }
 
+function AuthShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-[#071829] flex items-center justify-center p-4 font-body relative overflow-hidden">
+      <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(#F2A71B 1px, transparent 1px), linear-gradient(90deg, #F2A71B 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
+      <div className="relative w-full max-w-sm">
+        <div className="flex justify-center mb-8"><LogoImage height={46} colorFilter="classic-red-white" /></div>
+        {children}
+        <p className="text-center mt-5 text-xs text-[#5E7A96]"><a href="/" className="hover:text-white">← Back to website</a></p>
+      </div>
+    </div>
+  )
+}
+
 function Login() {
   const session = useSession()
   const navigate = useNavigate()
@@ -131,41 +143,133 @@ function Login() {
     }
   }
 
+  const handleForgot = () => {
+    const token = generateResetToken()
+    navigate(`/admin/reset?token=${encodeURIComponent(token)}`)
+  }
   return (
-    <div className="min-h-screen bg-[#071829] flex items-center justify-center p-4 font-body relative overflow-hidden">
-      <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(#F2A71B 1px, transparent 1px), linear-gradient(90deg, #F2A71B 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
-      <div className="relative w-full max-w-sm">
-        <div className="flex justify-center mb-8"><LogoImage height={46} colorFilter="classic-red-white" /></div>
+    <AuthShell>
+      <form onSubmit={submit} noValidate className="bg-white rounded-2xl shadow-2xl p-7 md:p-8 space-y-4">
+        <div>
+          <h1 className="font-display font-bold text-xl text-[#0E2A47]">Admin sign in</h1>
+          <p className="text-sm text-[#5B6B78] mt-1">Product management for CND HI-TECH CO.</p>
+        </div>
+        {err.form && <div role="alert" className="flex gap-2 text-sm text-[#C62828] bg-[#FDECEC] rounded-lg px-3 py-2.5"><Icon name="alert" className="w-4 h-4 mt-0.5 shrink-0" />{err.form}</div>}
+        <Field label="Username" required error={err.username}>
+          <input className={inputCls} value={f.username} autoComplete="username" autoFocus onChange={e => setF({ ...f, username: e.target.value })} />
+        </Field>
+        <Field label="Password" required error={err.password}>
+          <div className="relative">
+            <input className={`${inputCls} pr-11`} type={show ? 'text' : 'password'} value={f.password} autoComplete="current-password" onChange={e => setF({ ...f, password: e.target.value })} />
+            <button type="button" aria-label={show ? 'Hide password' : 'Show password'} onClick={() => setShow(s => !s)} className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-[#7B8A99] hover:text-[#0E2A47]"><Icon name={show ? 'eyeOff' : 'eye'} className="w-[18px] h-[18px]" /></button>
+          </div>
+        </Field>
+        <Button type="submit" variant="primary" className="w-full" disabled={busy}>{busy ? 'Please wait…' : 'Login'}</Button>
+        <div className="text-center">
+          <button type="button" onClick={handleForgot} className="text-xs text-[#D4920F] hover:underline">
+            Forgot password?
+          </button>
+        </div>
+      </form>
+    </AuthShell>
+  )
+}
+
+function ResetPassword() {
+  const [params] = useSearchParams()
+  const navigate = useNavigate()
+  const toast = useToast()
+  const token = params.get('token') ?? ''
+  const valid = validateResetToken(token)
+  const [step, setStep] = useState<'code' | 'password'>('code')
+  const [code, setCode] = useState('')
+  const [pw, setPw] = useState({ next: '', confirm: '' })
+  const [show, setShow] = useState(false)
+  const [err, setErr] = useState<Record<string, string>>({})
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => { document.title = 'Reset Password · CND HI-TECH CO.' }, [])
+
+  if (!valid) return (
+    <AuthShell>
+      <div className="bg-white rounded-2xl shadow-2xl p-7 md:p-8 space-y-4 text-center">
+        <h1 className="font-display font-bold text-xl text-[#C62828]">Invalid or expired link</h1>
+        <p className="text-sm text-[#5B6B78]">This reset link has expired or was already used. Please request a new one from the login page.</p>
+        <Button variant="primary" onClick={() => navigate('/admin/login')}>Back to login</Button>
+      </div>
+    </AuthShell>
+  )
+
+  const verifyCode = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!code.trim()) { setErr({ code: 'Enter your recovery code' }); return }
+    setBusy(true)
+    const result = await resetPasswordWithRecovery(code, '') // dry-run check
+    setBusy(false)
+    if (result === 'no-recovery') {
+      setErr({ code: 'No recovery code has been set up for this account.' })
+    } else if (result === 'wrong-code') {
+      setErr({ code: 'Incorrect recovery code. Access denied.' })
+    } else {
+      setStep('password')
+      setErr({})
+    }
+  }
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault()
+    const errs: Record<string, string> = {}
+    if (pw.next.length < 6) errs.next = 'Use at least 6 characters'
+    if (pw.confirm !== pw.next) errs.confirm = 'Passwords do not match'
+    setErr(errs)
+    if (Object.keys(errs).length) return
+    setBusy(true)
+    const result = await resetPasswordWithRecovery(code, pw.next)
+    setBusy(false)
+    if (result === 'ok') {
+      localStorage.removeItem('cnd-admin-reset')
+      toast('success', 'Password updated successfully!')
+      navigate('/admin/login', { replace: true })
+    } else {
+      setErr({ form: 'Reset failed. Please try again.' })
+    }
+  }
+
+  return (
+    <AuthShell>
+      {step === 'code' ? (
+        <form onSubmit={verifyCode} noValidate className="bg-white rounded-2xl shadow-2xl p-7 md:p-8 space-y-4">
+          <div>
+            <h1 className="font-display font-bold text-xl text-[#0E2A47]">Verify identity</h1>
+            <p className="text-sm text-[#5B6B78] mt-1">Enter the recovery code you set up in admin Settings to continue.</p>
+          </div>
+          {err.code && <div role="alert" className="flex gap-2 text-sm text-[#C62828] bg-[#FDECEC] rounded-lg px-3 py-2.5"><Icon name="alert" className="w-4 h-4 mt-0.5 shrink-0" />{err.code}</div>}
+          <Field label="Recovery code" required>
+            <input className={inputCls} type="password" value={code} autoFocus autoComplete="off" placeholder="Your secret recovery phrase" onChange={e => setCode(e.target.value)} />
+          </Field>
+          <Button type="submit" variant="primary" className="w-full" disabled={busy}>{busy ? 'Verifying…' : 'Verify'}</Button>
+          <div className="text-center"><button type="button" onClick={() => navigate('/admin/login')} className="text-xs text-[#5B6B78] hover:underline">← Back to login</button></div>
+        </form>
+      ) : (
         <form onSubmit={submit} noValidate className="bg-white rounded-2xl shadow-2xl p-7 md:p-8 space-y-4">
           <div>
-            <h1 className="font-display font-bold text-xl text-[#0E2A47]">Admin sign in</h1>
-            <p className="text-sm text-[#5B6B78] mt-1">Product management for CND HI-TECH CO.</p>
+            <h1 className="font-display font-bold text-xl text-[#0E2A47]">Set new password</h1>
+            <p className="text-sm text-[#5B6B78] mt-1">Identity verified. Enter your new password.</p>
           </div>
           {err.form && <div role="alert" className="flex gap-2 text-sm text-[#C62828] bg-[#FDECEC] rounded-lg px-3 py-2.5"><Icon name="alert" className="w-4 h-4 mt-0.5 shrink-0" />{err.form}</div>}
-          <Field label="Username" required error={err.username}>
-            <input className={inputCls} value={f.username} autoComplete="username" autoFocus onChange={e => setF({ ...f, username: e.target.value })} />
-          </Field>
-          <Field label="Password" required error={err.password}>
+          <Field label="New password" required error={err.next} hint="At least 6 characters.">
             <div className="relative">
-              <input className={`${inputCls} pr-11`} type={show ? 'text' : 'password'} value={f.password} autoComplete="current-password" onChange={e => setF({ ...f, password: e.target.value })} />
-              <button type="button" aria-label={show ? 'Hide password' : 'Show password'} onClick={() => setShow(s => !s)} className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-[#7B8A99] hover:text-[#0E2A47]"><Icon name={show ? 'eyeOff' : 'eye'} className="w-[18px] h-[18px]" /></button>
+              <input className={`${inputCls} pr-11`} type={show ? 'text' : 'password'} value={pw.next} autoComplete="new-password" onChange={e => setPw({ ...pw, next: e.target.value })} />
+              <button type="button" onClick={() => setShow(s => !s)} className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-[#7B8A99] hover:text-[#0E2A47]"><Icon name={show ? 'eyeOff' : 'eye'} className="w-[18px] h-[18px]" /></button>
             </div>
           </Field>
-          <Button type="submit" variant="primary" className="w-full" disabled={busy}>{busy ? 'Please wait…' : 'Login'}</Button>
+          <Field label="Confirm password" required error={err.confirm}>
+            <input className={inputCls} type={show ? 'text' : 'password'} value={pw.confirm} autoComplete="new-password" onChange={e => setPw({ ...pw, confirm: e.target.value })} />
+          </Field>
+          <Button type="submit" variant="primary" className="w-full" disabled={busy}>{busy ? 'Saving…' : 'Set new password'}</Button>
         </form>
-        <p className="text-center mt-5 text-xs text-[#5E7A96]"><a href="/" className="hover:text-white">← Back to website</a></p>
-        <p className="text-center mt-2 text-xs text-[#5E7A96]">
-          <button type="button" className="hover:text-white underline" onClick={async () => {
-            const { deleteAuthRecord } = await import('../data/store')
-            const { seedDefaultAdmin } = await import('./auth')
-            await deleteAuthRecord()
-            await seedDefaultAdmin()
-            setF({ username: '', password: '' })
-            setErr({ form: 'Credentials reset. Login with username: admin  password: cndadmin2024' })
-          }}>Forgot credentials? Reset to default</button>
-        </p>
-      </div>
-    </div>
+      )}
+    </AuthShell>
   )
 }
 
@@ -188,6 +292,7 @@ const router = createBrowserRouter([
     Component: Root,
     children: [
       { path: 'login', Component: Login },
+      { path: 'reset', Component: ResetPassword },
       {
         Component: Shell,
         children: [

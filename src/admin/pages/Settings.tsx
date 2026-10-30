@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getAuthRecord, saveSettings, useStore } from '../../data/store'
-import { createAdminUser, deleteAdmin, updateAdmin, useSession, verifyPassword } from '../auth'
+import { createAdminUser, deleteAdmin, hasRecoveryCode, setRecoveryCode, updateAdmin, useSession, verifyPassword } from '../auth'
 import { Button, Card, Field, Icon, inputCls, PageHeader, useToast } from '../ui'
 
 export default function SettingsPage() {
@@ -19,6 +19,11 @@ export default function SettingsPage() {
   // ── Change login credentials (username + password together) ───────────────
   const [cred, setCred] = useState({ username: '', password: '', confirm: '' })
   const [showCred, setShowCred] = useState({ password: false, confirm: false })
+
+  // ── Recovery code ─────────────────────────────────────────────────────────
+  const [recovery, setRecovery] = useState('')
+  const [recoverySet, setRecoverySet] = useState(false)
+  useEffect(() => { hasRecoveryCode().then(setRecoverySet) }, [])
 
   // ── Delete account ────────────────────────────────────────────────────────
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -66,6 +71,14 @@ export default function SettingsPage() {
     setUsername(cred.username.trim())
     setCred({ username: '', password: '', confirm: '' })
     toast('success', 'Login credentials updated — use the new username & password next time you log in')
+  }
+
+  const saveRecovery = async () => {
+    if (!recovery.trim()) { setErr({ recovery: 'Enter a recovery phrase or word' }); return }
+    await setRecoveryCode(recovery.trim())
+    setRecovery('')
+    setRecoverySet(true)
+    toast('success', 'Recovery code saved — keep it somewhere safe!')
   }
 
   const toggle = (k: keyof typeof n) =>
@@ -152,9 +165,29 @@ export default function SettingsPage() {
           </div>
         </Card>
 
+        {/* ── Recovery code ── */}
+        <Card title="Forgot password recovery code" className="lg:col-span-2">
+          <p className="text-sm text-[#5B6B78] mb-4">
+            Set a secret word or phrase. If you forget your password, you'll need to enter this code to reset it.
+            {recoverySet && <span className="ml-2 text-[#1B5E20] font-medium">✓ Recovery code is set.</span>}
+          </p>
+          <div className="flex gap-3 items-end max-w-md">
+            <Field label={recoverySet ? 'Update recovery code' : 'Set recovery code'} error={err.recovery} className="flex-1">
+              <input
+                className={inputCls}
+                type="password"
+                value={recovery}
+                autoComplete="off"
+                placeholder="e.g. a secret word only you know"
+                onChange={e => setRecovery(e.target.value)}
+              />
+            </Field>
+            <Button variant="primary" onClick={saveRecovery} className="mb-0.5">Save</Button>
+          </div>
+        </Card>
+
         {/* ── Notifications ── */}
-        <Card title="Notification preferences" className="lg:col-span-2">
-          {([['newEnquiry', 'New quotation enquiries'], ['productChanges', 'Product change summaries'], ['weeklySummary', 'Weekly catalogue summary']] as const).map(([k, label]) => (
+        <Card title="Notification preferences" className="lg:col-span-2">          {([['newEnquiry', 'New quotation enquiries'], ['productChanges', 'Product change summaries'], ['weeklySummary', 'Weekly catalogue summary']] as const).map(([k, label]) => (
             <label key={k} className="flex items-center justify-between min-h-12 border-b last:border-0 border-[#EEF1F5] cursor-pointer text-sm">
               {label}
               <input type="checkbox" role="switch" className="w-5 h-5 accent-[#F2A71B]" checked={n[k]} onChange={() => toggle(k)} />

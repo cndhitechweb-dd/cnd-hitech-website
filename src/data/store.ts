@@ -182,7 +182,7 @@ export interface Repository {
   subscribeExternal(cb: () => void): () => void
   notifyExternal(): void
 }
-export interface AuthRecord { name: string; email: string; salt: string; hash: string }
+export interface AuthRecord { name: string; email: string; salt: string; hash: string; recoverySalt?: string; recoveryHash?: string }
 
 function idb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
