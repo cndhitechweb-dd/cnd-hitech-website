@@ -1,30 +1,21 @@
-import { useSyncExternalStore } from 'react'
-import { getAuthRecord, setAuthRecord, deleteAuthRecord, type AuthRecord } from '../data/store'
-
 /*
-  Client-side admin authentication.
-  - Login uses username + password only (no email).
-  - First admin is auto-seeded with username "admin" and password "cndadmin2024".
-  - Additional users can only be created from inside the admin panel (Settings page).
-  - Passwords are stored only as salted PBKDF2 hashes; the session lives in sessionStorage (cleared on tab close, 8h max).
-  - IMPORTANT: browser-only auth cannot truly protect data. Before going live, replace this module and the
-    Repository in data/store.ts with a server-side API (auth + database + file storage).
+  Admin authentication using Vercel environment variables.
+
+  Credentials are set in Vercel Dashboard → Project → Settings → Environment Variables:
+    VITE_ADMIN_USERNAME   →  your chosen username  (e.g. cndadmin)
+    VITE_ADMIN_PASSWORD   →  your chosen password  (e.g. MySecret@2024)
+
+  To change credentials: update the env vars in Vercel → Redeploy.
+  Works in every browser and device — no local storage needed.
 */
 
-const SESSION_KEY = 'cnd-admin-session'
-const SESSION_MS = 8 * 60 * 60 * 1000
-const enc = new TextEncoder()
+import { useSyncExternalStore } from 'react'
 
-const toHex = (buf: ArrayBuffer) => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('')
-function randomHex(bytes = 16) {
-  return toHex(crypto.getRandomValues(new Uint8Array(bytes)).buffer)
-}
-async function hashPassword(password: string, salt: string) {
-  const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits'])
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode(salt), iterations: 150_000 }, key, 256)
-  return toHex(bits)
-}
+const ADMIN_USER = (import.meta.env.VITE_ADMIN_USERNAME as string | undefined)?.trim() ?? 'admin'
+const ADMIN_PASS = (import.meta.env.VITE_ADMIN_PASSWORD as string | undefined)?.trim() ?? ''
+
+const SESSION_KEY = 'cnd-admin-session'
+const SESSION_MS  = 8 * 60 * 60 * 1000   // 8 hours
 
 interface Session { username: string; name: string; expires: number }
 const listeners = new Set<() => void>()
@@ -52,135 +43,19 @@ export function useSession() {
   )
 }
 
-/** Seeds the default admin account on first load if none exists. */
-export async function seedDefaultAdmin() {
-  const existing = await getAuthRecord()
-  if (existing) return
-  const salt = randomHex()
-  const rec: AuthRecord = {
-    name: 'Admin',
-    email: 'admin',
-    salt,
-    hash: await hashPassword('cndadmin2024', salt),
-  }
-  await setAuthRecord(rec)
-}
-
-export const hasAdminAccount = async () => !!(await getAuthRecord())
-
-/** Create / replace admin user — only callable from inside the admin panel after login. */
-export async function createAdminUser(username: string, password: string, displayName: string) {
-  const salt = randomHex()
-  const rec: AuthRecord = {
-    name: displayName || username,
-    email: username.trim().toLowerCase(),
-    salt,
-    hash: await hashPassword(password, salt),
-  }
-  await setAuthRecord(rec)
-}
-
 let fails = 0
 let lockedUntil = 0
-export async function login(username: string, password: string): Promise<'ok' | 'invalid' | 'locked'> {
+export async function login(username: string, password: string): Promise<'ok' | 'invalid' | 'locked' | 'not-configured'> {
+  if (!ADMIN_PASS) return 'not-configured'
   if (Date.now() < lockedUntil) return 'locked'
-  const rec = await getAuthRecord()
-  const ok =
-    !!rec &&
-    rec.email === username.trim().toLowerCase() &&
-    (await hashPassword(password, rec.salt)) === rec.hash
+  const ok = username.trim().toLowerCase() === ADMIN_USER.toLowerCase() && password === ADMIN_PASS
   if (!ok) {
     fails++
     if (fails >= 5) { lockedUntil = Date.now() + 30_000; fails = 0 }
     return 'invalid'
   }
   fails = 0
-  writeSession({ username: rec.email, name: rec.name, expires: Date.now() + SESSION_MS })
+  writeSession({ username: ADMIN_USER, name: ADMIN_USER, expires: Date.now() + SESSION_MS })
   return 'ok'
 }
 export const logout = () => writeSession(null)
-
-/** Delete the current admin account and log out. Seed will recreate defaults on next load. */
-export async function deleteAdmin() {
-  await deleteAuthRecord()
-  writeSession(null)
-}
-
-/* ── Password reset ───────────────────────────────────────────────────────── */
-
-const RESET_KEY = 'cnd-admin-reset'
-
-export function generateResetToken(): string {
-  const token = randomHex(32)
-  const expires = Date.now() + 60 * 60 * 1000 // 1 hour
-  localStorage.setItem(RESET_KEY, JSON.stringify({ token, expires }))
-  return token
-}
-
-export function validateResetToken(token: string): boolean {
-  try {
-    const raw = localStorage.getItem(RESET_KEY)
-    if (!raw) return false
-    const { token: stored, expires } = JSON.parse(raw) as { token: string; expires: number }
-    return stored === token && expires > Date.now()
-  } catch { return false }
-}
-
-export async function resetPasswordWithToken(token: string, newPassword: string): Promise<boolean> {
-  if (!validateResetToken(token)) return false
-  const rec = await getAuthRecord()
-  if (!rec) return false
-  const next = { ...rec, salt: randomHex() }
-  next.hash = await hashPassword(newPassword, next.salt)
-  await setAuthRecord(next)
-  localStorage.removeItem(RESET_KEY)
-  return true
-}
-
-/* ── Recovery code ────────────────────────────────────────────────────────── */
-
-export async function hasRecoveryCode(): Promise<boolean> {
-  const rec = await getAuthRecord()
-  return !!(rec?.recoveryHash)
-}
-
-export async function setRecoveryCode(code: string): Promise<void> {
-  const rec = await getAuthRecord()
-  if (!rec) throw new Error('No admin account')
-  const recoverySalt = randomHex()
-  const recoveryHash = await hashPassword(code.trim().toLowerCase(), recoverySalt)
-  await setAuthRecord({ ...rec, recoverySalt, recoveryHash })
-}
-
-/** Verify recovery code then reset password in one step. */
-export async function resetPasswordWithRecovery(
-  code: string, newPassword: string
-): Promise<'ok' | 'wrong-code' | 'no-recovery'> {
-  const rec = await getAuthRecord()
-  if (!rec?.recoverySalt || !rec?.recoveryHash) return 'no-recovery'
-  const codeOk = (await hashPassword(code.trim().toLowerCase(), rec.recoverySalt)) === rec.recoveryHash
-  if (!codeOk) return 'wrong-code'
-  const salt = randomHex()
-  const hash = await hashPassword(newPassword, salt)
-  await setAuthRecord({ ...rec, salt, hash })
-  return 'ok'
-}
-
-export async function verifyPassword(password: string) {
-  const rec = await getAuthRecord()
-  return !!rec && (await hashPassword(password, rec.salt)) === rec.hash
-}
-export async function updateAdmin(patch: { name?: string; username?: string; newPassword?: string }) {
-  const rec = await getAuthRecord()
-  if (!rec) throw new Error('No admin account')
-  const next = { ...rec }
-  if (patch.name) next.name = patch.name
-  if (patch.username) next.email = patch.username.trim().toLowerCase()
-  if (patch.newPassword) {
-    next.salt = randomHex()
-    next.hash = await hashPassword(patch.newPassword, next.salt)
-  }
-  await setAuthRecord(next)
-  const session = readSession()
-  writeSession({ username: next.email, name: next.name, expires: session?.expires ?? Date.now() + SESSION_MS })
-}
