@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { createBrowserRouter, Link, Navigate, NavLink, Outlet, RouterProvider, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { LogoImage } from '../components/Logo'
-import { generateResetToken, login, logout, resetPasswordWithRecovery, resetPasswordWithToken, useSession, validateResetToken } from './auth'import { Button, Field, Icon, inputCls, ToastProvider, useToast } from './ui'
+import { generateResetToken, hasAdminAccount, login, logout, createAdminUser, resetPasswordWithRecovery, resetPasswordWithToken, useSession, validateResetToken } from './auth'import { Button, Field, Icon, inputCls, ToastProvider, useToast } from './ui'
 import Dashboard from './pages/Dashboard'
 import ProductsList from './pages/ProductsList'
 import ProductForm from './pages/ProductForm'
@@ -112,12 +112,14 @@ function Login() {
   const navigate = useNavigate()
   const location = useLocation()
   const toast = useToast()
-  const [f, setF] = useState({ username: '', password: '' })
+  const [mode, setMode] = useState<'loading' | 'setup' | 'login'>('loading')
+  const [f, setF] = useState({ username: '', password: '', confirm: '' })
   const [show, setShow] = useState(false)
-  const [err, setErr] = useState<Partial<Record<'username' | 'password' | 'form', string>>>({})
+  const [err, setErr] = useState<Partial<Record<'username' | 'password' | 'confirm' | 'form', string>>>({})
   const [busy, setBusy] = useState(false)
 
   useEffect(() => { document.title = 'Admin Login · CND HI-TECH CO.' }, [])
+  useEffect(() => { hasAdminAccount().then(has => setMode(has ? 'login' : 'setup')) }, [])
   if (session) return <Navigate to={(location.state as { from?: string } | null)?.from ?? '/admin'} replace />
 
   const submit = async (e: FormEvent) => {
@@ -125,16 +127,26 @@ function Login() {
     const errs: typeof err = {}
     if (!f.username.trim()) errs.username = 'Username is required'
     if (!f.password) errs.password = 'Password is required'
+    if (mode === 'setup' && f.password.length < 6) errs.password = 'Use at least 6 characters'
+    if (mode === 'setup' && f.confirm !== f.password) errs.confirm = 'Passwords do not match'
     setErr(errs)
     if (Object.keys(errs).length) return
     setBusy(true)
     try {
-      const r = await login(f.username, f.password)
-      if (r === 'invalid') setErr({ form: 'Invalid username or password.' })
-      else if (r === 'locked') setErr({ form: 'Too many failed attempts. Please wait 30 seconds and try again.' })
-      else {
-        toast('success', 'Signed in')
+      if (mode === 'setup') {
+        await createAdminUser(f.username.trim(), f.password, f.username.trim())
+        toast('success', 'Admin account created — you are now logged in')
         navigate((location.state as { from?: string } | null)?.from ?? '/admin', { replace: true })
+        // re-read session
+        window.location.href = '/admin'
+      } else {
+        const r = await login(f.username, f.password)
+        if (r === 'invalid') setErr({ form: 'Invalid username or password.' })
+        else if (r === 'locked') setErr({ form: 'Too many failed attempts. Please wait 30 seconds and try again.' })
+        else {
+          toast('success', 'Signed in')
+          navigate((location.state as { from?: string } | null)?.from ?? '/admin', { replace: true })
+        }
       }
     } catch (ex) {
       setErr({ form: ex instanceof Error ? ex.message : 'Something went wrong.' })
@@ -147,29 +159,47 @@ function Login() {
     const token = generateResetToken()
     navigate(`/admin/reset?token=${encodeURIComponent(token)}`)
   }
+
+  if (mode === 'loading') return (
+    <AuthShell>
+      <div className="bg-white rounded-2xl shadow-2xl p-7 md:p-8 text-center text-sm text-[#5B6B78]">Loading…</div>
+    </AuthShell>
+  )
+
   return (
     <AuthShell>
       <form onSubmit={submit} noValidate className="bg-white rounded-2xl shadow-2xl p-7 md:p-8 space-y-4">
         <div>
-          <h1 className="font-display font-bold text-xl text-[#0E2A47]">Admin sign in</h1>
-          <p className="text-sm text-[#5B6B78] mt-1">Product management for CND HI-TECH CO.</p>
+          <h1 className="font-display font-bold text-xl text-[#0E2A47]">
+            {mode === 'setup' ? 'Create admin account' : 'Admin sign in'}
+          </h1>
+          <p className="text-sm text-[#5B6B78] mt-1">
+            {mode === 'setup' ? 'Set up your username and password to get started.' : 'Product management for CND HI-TECH CO.'}
+          </p>
         </div>
         {err.form && <div role="alert" className="flex gap-2 text-sm text-[#C62828] bg-[#FDECEC] rounded-lg px-3 py-2.5"><Icon name="alert" className="w-4 h-4 mt-0.5 shrink-0" />{err.form}</div>}
         <Field label="Username" required error={err.username}>
           <input className={inputCls} value={f.username} autoComplete="username" autoFocus onChange={e => setF({ ...f, username: e.target.value })} />
         </Field>
-        <Field label="Password" required error={err.password}>
+        <Field label="Password" required error={err.password} hint={mode === 'setup' ? 'At least 6 characters.' : undefined}>
           <div className="relative">
-            <input className={`${inputCls} pr-11`} type={show ? 'text' : 'password'} value={f.password} autoComplete="current-password" onChange={e => setF({ ...f, password: e.target.value })} />
-            <button type="button" aria-label={show ? 'Hide password' : 'Show password'} onClick={() => setShow(s => !s)} className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-[#7B8A99] hover:text-[#0E2A47]"><Icon name={show ? 'eyeOff' : 'eye'} className="w-[18px] h-[18px]" /></button>
+            <input className={`${inputCls} pr-11`} type={show ? 'text' : 'password'} value={f.password} autoComplete={mode === 'setup' ? 'new-password' : 'current-password'} onChange={e => setF({ ...f, password: e.target.value })} />
+            <button type="button" aria-label={show ? 'Hide' : 'Show'} onClick={() => setShow(s => !s)} className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-[#7B8A99] hover:text-[#0E2A47]"><Icon name={show ? 'eyeOff' : 'eye'} className="w-[18px] h-[18px]" /></button>
           </div>
         </Field>
-        <Button type="submit" variant="primary" className="w-full" disabled={busy}>{busy ? 'Please wait…' : 'Login'}</Button>
-        <div className="text-center">
-          <button type="button" onClick={handleForgot} className="text-xs text-[#D4920F] hover:underline">
-            Forgot password?
-          </button>
-        </div>
+        {mode === 'setup' && (
+          <Field label="Confirm password" required error={err.confirm}>
+            <input className={inputCls} type={show ? 'text' : 'password'} value={f.confirm} autoComplete="new-password" onChange={e => setF({ ...f, confirm: e.target.value })} />
+          </Field>
+        )}
+        <Button type="submit" variant="primary" className="w-full" disabled={busy}>
+          {busy ? 'Please wait…' : mode === 'setup' ? 'Create account & sign in' : 'Login'}
+        </Button>
+        {mode === 'login' && (
+          <div className="text-center">
+            <button type="button" onClick={handleForgot} className="text-xs text-[#D4920F] hover:underline">Forgot password?</button>
+          </div>
+        )}
       </form>
     </AuthShell>
   )
