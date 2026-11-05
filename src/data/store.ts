@@ -173,7 +173,8 @@ function buildSeed(): StoreState {
 export interface Repository {
   loadState(): Promise<StoreState | null>
   saveState(state: StoreState): Promise<void>
-  putFile(id: string, blob: Blob): Promise<void>
+  /** Upload a file and return the ref string to store on the product/category. */
+  putFile(id: string, blob: Blob): Promise<string>
   deleteFile(id: string): Promise<void>
   loadFiles(): Promise<Map<string, Blob>>
   getAuth(): Promise<AuthRecord | null>
@@ -211,7 +212,7 @@ const channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('
 const browserRepo: Repository = {
   loadState: async () => (await tx<StoreState | undefined>('kv', 'readonly', s => s.get('state'))) ?? null,
   saveState: async state => { await tx('kv', 'readwrite', s => s.put(state, 'state')) },
-  putFile: async (id, blob) => { await tx('files', 'readwrite', s => s.put(blob, id)) },
+  putFile: async (id, blob) => { await tx('files', 'readwrite', s => s.put(blob, id)); return `file:${id}` },
   deleteFile: async id => { await tx('files', 'readwrite', s => s.delete(id)) },
   loadFiles: async () => {
     const db = await idb()
@@ -239,9 +240,12 @@ const browserRepo: Repository = {
   notifyExternal: () => channel?.postMessage('changed'),
 }
 
-export const repo: Repository = browserRepo
+import { githubRepo } from './githubRepo'
 
-/* ── In-memory store ──────────────────────────────────────────────────────── */
+/* ── Local override map: holds HTTPS URLs for images uploaded this session ── */
+const localOverrides = new Map<string, string>()
+
+export const repo: Repository = githubRepo/* ── In-memory store ──────────────────────────────────────────────────────── */
 
 let state: StoreState = buildSeed()
 let ready = false
@@ -291,6 +295,8 @@ export function useStore(): StoreState {
 /** Resolve a stored file reference (`file:<id>`) or bundled asset URL to a usable URL. */
 export function resolveRef(ref: string | undefined | null): string {
   if (!ref) return ''
+  // GitHub backend: HTTPS URLs returned immediately after upload
+  if (localOverrides.has(ref)) return localOverrides.get(ref)!
   if (ref.startsWith('file:')) return fileUrls.get(ref.slice(5)) ?? ''
   if (ref.startsWith('asset:')) {
     const [, id, key] = ref.split(':')
@@ -336,12 +342,18 @@ export function commit(mutator: (s: StoreState) => StoreState): Promise<void> {
   return saveChain
 }
 
-/** Store an uploaded file and return its reference. */
+/** Store an uploaded file and return its reference (HTTPS URL for GitHub, file: ref for local). */
 export async function storeFile(blob: Blob): Promise<string> {
   const id = uid('f')
-  await repo.putFile(id, blob)
-  fileUrls.set(id, URL.createObjectURL(blob))
-  return `file:${id}`
+  const ref = await repo.putFile(id, blob)
+  if (ref.startsWith('file:')) {
+    // Local (browser) repo: register blob URL for resolveRef
+    fileUrls.set(id, URL.createObjectURL(blob))
+  } else {
+    // GitHub repo: ref is a full HTTPS URL — cache it so resolveRef works immediately
+    localOverrides.set(ref, ref)
+  }
+  return ref
 }
 
 /* ── Mutations ────────────────────────────────────────────────────────────── */
