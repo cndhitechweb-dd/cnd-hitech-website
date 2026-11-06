@@ -60,20 +60,18 @@ export const githubRepo: Repository = {
       // Add cache-busting param so we always get the latest committed version
       const res = await fetch(`${RAW}/${STATE_PATH}?t=${Date.now()}`, { cache: 'no-store' })
       if (!res.ok) return null
-      return (await res.json()) as StoreState
+      const data = await res.json()
+      // If file contains null (placeholder), treat as empty — use seed
+      if (!data || typeof data !== 'object') return null
+      return data as StoreState
     } catch {
       return null
     }
   },
 
   async saveState(state) {
-    try {
-      const content = toBase64(JSON.stringify(state))
-      await githubWrite(STATE_PATH, content, 'Update product catalogue [admin]')
-    } catch (e) {
-      console.error('[GitHub] saveState failed:', e)
-      // Don't throw — keep the in-memory state working even if persist fails
-    }
+    const content = toBase64(JSON.stringify(state))
+    await githubWrite(STATE_PATH, content, 'Update product catalogue [admin]')
   },
 
   /* Files (images / PDFs) -------------------------------------------------- */
@@ -111,5 +109,19 @@ export const githubRepo: Repository = {
   },
 
   notifyExternal() {},
+}
+
+/**
+ * Test the GitHub write connection — called from Settings page.
+ * Returns { ok: true } on success or { ok: false, error: string } on failure.
+ */
+export async function testGitHubConnection(): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const testContent = toBase64(JSON.stringify({ _test: true, ts: Date.now() }))
+    await githubWrite('public/data/.connection-test', testContent, 'Test GitHub connection [admin]')
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) }
+  }
 }
 
