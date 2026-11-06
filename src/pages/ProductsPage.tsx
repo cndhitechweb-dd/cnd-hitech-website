@@ -2,13 +2,15 @@ import { useState, useMemo, useEffect } from 'react'
 import type { Product } from '../data/products'
 import { getPublicData, usePublicData, setQuoteContext, type PublicProduct } from '../data/store'
 
-import type { Page } from '../App'
+import type { Page, ProductDeepLink } from '../App'
 interface Props {
   onNavigate: (page: Page) => void
   enquiryList: string[]
   onToggleEnquiry: (id: string) => void
   onClearEnquiry: () => void
   onViewEnquiry: () => void
+  initialDeepLink?: ProductDeepLink | null
+  onDeepLinkConsumed?: () => void
 }
 
 type ProductViewLevel =
@@ -1115,9 +1117,23 @@ function ProductListing({
 
 // ─── Main ProductsPage ────────────────────────────────────────────────────────
 
-export default function ProductsPage({ onNavigate, enquiryList, onToggleEnquiry, onClearEnquiry, onViewEnquiry }: Props) {
+export default function ProductsPage({ onNavigate, enquiryList, onToggleEnquiry, onClearEnquiry, onViewEnquiry, initialDeepLink, onDeepLinkConsumed }: Props) {
   usePublicData()
   const [viewState, setViewState] = useState<ProductViewLevel>({ level: 'categories' })
+
+  // On mount (or when a deep-link arrives from search), jump straight to product detail
+  useEffect(() => {
+    if (initialDeepLink) {
+      setViewState({
+        level: 'product-detail',
+        categoryLabel: initialDeepLink.categoryLabel,
+        subcategory: initialDeepLink.subcategory,
+        productId: initialDeepLink.productId,
+      })
+      window.scrollTo(0, 0)
+      onDeepLinkConsumed?.()
+    }
+  }, [initialDeepLink])
 
   const gotoCategories = () => {
     setViewState({ level: 'categories' })

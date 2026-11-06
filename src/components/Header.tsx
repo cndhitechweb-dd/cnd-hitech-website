@@ -6,6 +6,7 @@ import type { Page } from '../App'
 interface Props {
   currentPage: Page
   onNavigate: (page: Page, industrySlug?: string) => void
+  onNavigateToProduct: (productId: string) => void
   enquiryCount?: number
   logoColorFilter?: string
 }
@@ -22,7 +23,7 @@ function scrollTo(section: string) {
   document.getElementById(section)?.scrollIntoView({ behavior: 'smooth' })
 }
 
-export function Header({ currentPage, onNavigate, enquiryCount = 0, logoColorFilter }: Props) {
+export function Header({ currentPage, onNavigate, onNavigateToProduct, enquiryCount = 0, logoColorFilter }: Props) {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
@@ -222,7 +223,12 @@ export function Header({ currentPage, onNavigate, enquiryCount = 0, logoColorFil
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search products by name or catalogue number..."
                 className="flex-1 bg-transparent text-sm text-white placeholder-[#5B6B78] outline-none"
-                onKeyDown={e => { if (e.key === 'Enter' && searchResults.length > 0) { onNavigate('products'); setShowSearch(false) } }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && searchResults.length > 0) {
+                    onNavigateToProduct(searchResults[0].id)
+                    setShowSearch(false)
+                  }
+                }}
               />
               <button onClick={() => setShowSearch(false)} className="text-[#5B6B78] hover:text-white transition-colors">
                 <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
@@ -240,7 +246,7 @@ export function Header({ currentPage, onNavigate, enquiryCount = 0, logoColorFil
                 {searchResults.map(p => (
                   <button
                     key={p.catNo}
-                    onClick={() => { onNavigate('products'); setShowSearch(false) }}
+                    onClick={() => { onNavigateToProduct(p.id); setShowSearch(false) }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-[#1C4570]/40 transition-colors"
                   >
                     {p.img ? (
