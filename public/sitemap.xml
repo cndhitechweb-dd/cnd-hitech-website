@@ -1,32 +1,281 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
-  <!-- Main pages -->
+  <!-- Core pages -->
   <url>
     <loc>https://cnd-hitech-website.vercel.app/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://cnd-hitech-website.vercel.app/#products</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://cnd-hitech-website.vercel.app/#industries</loc>
+    <loc>https://cnd-hitech-website.vercel.app/about</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cnd-hitech-website.vercel.app/#about</loc>
+    <loc>https://cnd-hitech-website.vercel.app/contact</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/industries</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/industries/oil-gas</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://cnd-hitech-website.vercel.app/#contact</loc>
+    <loc>https://cnd-hitech-website.vercel.app/industries/petrochemical</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/industries/pharmaceuticals</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/industries/chemicals</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/industries/power-plants</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
 
-</urlset>
+  <!-- Product categories -->
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/light-fittings</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/junction-boxes</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/control-stations</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/plug-and-sockets</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/switches</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/communication</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/fire-alarm</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/cable-glands</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/blanking-plugs</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/wiring-accessories</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
 
+  <!-- Light Fittings products -->
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/light-fittings/explosionproof-led-aviation-luminaire</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/light-fittings/flameproof-hand-lamp-luminaire</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/light-fittings/flpw-led-bulk-head-luminaire</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/light-fittings/flame-proof-led-floodlight-luminaire-72w-100w</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/light-fittings/flameproof-led-based-vat-light</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/light-fittings/flame-proof-fluorescent-led-tube-luminaire</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Junction Boxes products -->
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/junction-boxes/flame-proof-cum-weather-proof-multiway-junction-box</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/junction-boxes/flameproof-multi-way-distribution-box</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/junction-boxes/flameproof-lighting-junction-box</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/junction-boxes/flameproof-lighting-junction-box-2-3-4-way</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/junction-boxes/explosionproof-junction-box</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Control Stations products -->
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/control-stations/explosionproof-cum-weatherproof-control-station</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/control-stations/flame-proof-control-station</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Plug &amp; Sockets products -->
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/plug-and-sockets/flame-proof-plug-and-socket-16a-2-pole</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/plug-and-sockets/flame-proof-plug-and-socket-32a-3-phase</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/plug-and-sockets/flame-proof-plug-and-socket-63a-5-pole</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Switches products -->
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/switches/flame-proof-isolator-toggle-switch-10a</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/switches/flame-proof-rotary-switch</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/switches/flame-proof-main-switch-fuse-switch</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Communication products -->
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/communication/flsr-25-flameproof-loud-speaker</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/communication/flameproof-acoustic-booth-telephone-hood</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/communication/ex-talk-flameproof-telephone</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/communication/fph-115-flameproof-hooter</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/communication/fph-117-hooter-flasher</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/communication/wp-108-weather-proof-hooter</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/communication/wp-111-weather-proof-hooter-with-flasher</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Fire Alarm products -->
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/fire-alarm/fpbs-52100-fa-flameproof-fire-alarm-station</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/fire-alarm/excs-100-3-explosionproof-fire-alarm-control-station</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/fire-alarm/s-100-fa-weatherproof-fire-alarm-station</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Cable Glands products -->
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/cable-glands/cg101x-series-flameproof-cable-gland</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Blanking Plugs products -->
+  <url>
+    <loc>https://cnd-hitech-website.vercel.app/products/blanking-plugs/fwpg-series-explosion-proof-blanking-plug</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+</urlset>

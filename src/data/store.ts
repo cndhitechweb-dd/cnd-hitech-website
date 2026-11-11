@@ -485,6 +485,8 @@ export type PublicProduct = Product & {
   pdfs: { id: string; name: string; type: PdfType; url: string }[]
   categoryName: string
   groupLabel: string
+  slug: string
+  subcategory: string
 }
 
 export function toPublicProduct(s: StoreState, p: AdminProduct): PublicProduct {
@@ -514,6 +516,8 @@ export function toPublicProduct(s: StoreState, p: AdminProduct): PublicProduct {
     pdfs,
     categoryName: cat?.name ?? 'Other',
     groupLabel,
+    slug: p.slug,
+    subcategory: p.subcategory || groupLabel,
   }
 }
 

@@ -1,16 +1,15 @@
 import { useState, useMemo, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router'
 import type { Product } from '../data/products'
-import { getPublicData, usePublicData, setQuoteContext, type PublicProduct } from '../data/store'
+import { getPublicData, usePublicData, setQuoteContext, slugify, type PublicProduct } from '../data/store'
 
-import type { Page, ProductDeepLink } from '../App'
+import type { Page } from '../App'
 interface Props {
   onNavigate: (page: Page) => void
   enquiryList: string[]
   onToggleEnquiry: (id: string) => void
   onClearEnquiry: () => void
   onViewEnquiry: () => void
-  initialDeepLink?: ProductDeepLink | null
-  onDeepLinkConsumed?: () => void
 }
 
 type ProductViewLevel =
@@ -1117,41 +1116,56 @@ function ProductListing({
 
 // ─── Main ProductsPage ────────────────────────────────────────────────────────
 
-export default function ProductsPage({ onNavigate, enquiryList, onToggleEnquiry, onClearEnquiry, onViewEnquiry, initialDeepLink, onDeepLinkConsumed }: Props) {
+export default function ProductsPage({ onNavigate, enquiryList, onToggleEnquiry, onClearEnquiry, onViewEnquiry }: Props) {
   usePublicData()
-  const [viewState, setViewState] = useState<ProductViewLevel>({ level: 'categories' })
+  const navigate = useNavigate()
+  const { categorySlug, productSlug } = useParams<{ categorySlug?: string; productSlug?: string }>()
 
-  // On mount (or when a deep-link arrives from search), jump straight to product detail
-  useEffect(() => {
-    if (initialDeepLink) {
-      setViewState({
-        level: 'product-detail',
-        categoryLabel: initialDeepLink.categoryLabel,
-        subcategory: initialDeepLink.subcategory,
-        productId: initialDeepLink.productId,
-      })
-      window.scrollTo(0, 0)
-      onDeepLinkConsumed?.()
+  /** Compute which view to show based on current URL params */
+  const computeViewState = (): ProductViewLevel => {
+    const data = getPublicData()
+    if (productSlug) {
+      const product = data.products.find(p => p.slug === productSlug)
+      if (product) {
+        return { level: 'product-detail', categoryLabel: product.groupLabel, subcategory: product.subcategory, productId: product.id }
+      }
     }
-  }, [initialDeepLink])
-
-  const gotoCategories = () => {
-    setViewState({ level: 'categories' })
-    window.scrollTo(0, 0)
+    if (categorySlug) {
+      // group.label is uppercase e.g. "LIGHT FITTINGS"; slugify("LIGHT FITTINGS") === "light-fittings" === categorySlug
+      const group = data.groups.find(g => slugify(g.label) === categorySlug)
+      if (group) return { level: 'subcategories', categoryLabel: group.label }
+    }
+    return { level: 'categories' }
   }
 
+  const [viewState, setViewState] = useState<ProductViewLevel>(computeViewState)
+
+  // Sync view when URL params change (browser back/forward)
+  useEffect(() => {
+    setViewState(computeViewState())
+  }, [categorySlug, productSlug])
+
+  const gotoCategories = () => { navigate('/products'); window.scrollTo(0, 0) }
+
   const gotoSubcategories = (categoryLabel: string) => {
-    setViewState({ level: 'subcategories', categoryLabel })
+    // categoryLabel is UPPERCASE e.g. "LIGHT FITTINGS" → slug "light-fittings"
+    navigate(`/products/${slugify(categoryLabel)}`)
     window.scrollTo(0, 0)
   }
 
   const gotoProducts = (categoryLabel: string, subcategory: string) => {
+    // subcategory level has no dedicated URL — keep state only
     setViewState({ level: 'products', categoryLabel, subcategory })
     window.scrollTo(0, 0)
   }
 
   const gotoProduct = (categoryLabel: string, subcategory: string, productId: string) => {
-    setViewState({ level: 'product-detail', categoryLabel, subcategory, productId })
+    const product = getPublicData().products.find(p => p.id === productId)
+    if (product) {
+      navigate(`/products/${slugify(product.groupLabel)}/${product.slug}`)
+    } else {
+      setViewState({ level: 'product-detail', categoryLabel, subcategory, productId })
+    }
     window.scrollTo(0, 0)
   }
 
