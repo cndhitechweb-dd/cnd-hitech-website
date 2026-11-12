@@ -9,11 +9,20 @@ interface Props {
   onClearEnquiry: () => void
 }
 
+const IC = 'w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#F2A71B] focus:ring-1 focus:ring-[#F2A71B]/30 text-[#0E2A47] placeholder-[#C8D8E8] transition-colors bg-white'
+
 export default function EnquiryCartPage({ onNavigate, enquiryList, onToggleEnquiry, onClearEnquiry }: Props) {
   const publicData = usePublicData()
   const [quantities, setQuantities] = useState<Record<string, number>>(() =>
     Object.fromEntries(enquiryList.map(id => [id, 1]))
   )
+
+  // Contact form state
+  const [contact, setContact] = useState({ name: '', email: '', phone: '', company: '', message: '' })
+  const [contactErrors, setContactErrors] = useState<Partial<typeof contact>>({})
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [serverError, setServerError] = useState('')
 
   const products = useMemo(
     () => publicData.products.filter(p => enquiryList.includes(p.id)),
@@ -29,18 +38,63 @@ export default function EnquiryCartPage({ onNavigate, enquiryList, onToggleEnqui
     setQuantities(prev => { const next = { ...prev }; delete next[id]; return next })
   }
 
-  const handleSubmitWhatsApp = () => {
-    const lines = products.map(p => {
-      const qty = quantities[p.id] ?? 1
-      return `• ${p.name} (${p.catNo}) — Qty: ${qty}`
-    }).join('\n')
-    const text = `Hi CND Hitech,\n\nI'd like to request a quote for the following products:\n\n${lines}\n\nPlease share pricing and availability. Thank you.`
-    window.open(`https://wa.me/919444022338?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer')
-  }
-
   const handleClearAll = () => {
     onClearEnquiry()
     setQuantities({})
+  }
+
+  const setC = (k: keyof typeof contact) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setContact(prev => ({ ...prev, [k]: e.target.value }))
+    if (contactErrors[k]) setContactErrors(prev => ({ ...prev, [k]: undefined }))
+  }
+
+  const validateContact = () => {
+    const errs: Partial<typeof contact> = {}
+    if (!contact.name.trim()) errs.name = 'Required'
+    if (!contact.email.trim()) errs.email = 'Required'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email)) errs.email = 'Invalid email'
+    if (!contact.phone.trim()) errs.phone = 'Required'
+    setContactErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!validateContact()) return
+    setSubmitting(true)
+    setServerError('')
+    const productList = products.map(p => `${p.name} (${p.catNo}) — Qty: ${quantities[p.id] ?? 1}`).join('\n')
+    try {
+      const res = await fetch('/api/form-submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'enquiry',
+          name: contact.name,
+          surname: '',
+          email: contact.email,
+          phone: contact.phone,
+          department: '',
+          companyName: contact.company,
+          companyType: '',
+          state: '',
+          city: '',
+          inquiry: `${contact.message ? contact.message + '\n\n' : ''}Products:\n${productList}`,
+          products: products.map(p => `${p.name} (${p.catNo}) × ${quantities[p.id] ?? 1}`),
+        }),
+      })
+      const data = await res.json() as { success?: boolean; error?: string }
+      if (!res.ok || !data.success) {
+        setServerError(data.error ?? 'Something went wrong. Please try again.')
+        return
+      }
+      setSubmitted(true)
+      onClearEnquiry()
+    } catch {
+      setServerError('Network error. Please check your connection and try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -77,7 +131,7 @@ export default function EnquiryCartPage({ onNavigate, enquiryList, onToggleEnqui
               <p className="text-[#8DA5BE] text-sm mt-2">
                 {products.length === 0
                   ? 'No products added yet.'
-                  : `${products.length} product${products.length > 1 ? 's' : ''} selected — review quantities and submit for a quote.`}
+                  : `${products.length} product${products.length > 1 ? 's' : ''} selected — fill in your details and submit for a quote.`}
               </p>
             </div>
             {products.length > 0 && (
@@ -96,7 +150,7 @@ export default function EnquiryCartPage({ onNavigate, enquiryList, onToggleEnqui
       </section>
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-10">
-        {products.length === 0 ? (
+        {products.length === 0 && !submitted ? (
           /* Empty state */
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-16 text-center">
             <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-[#F7F8FA] border border-gray-200 flex items-center justify-center">
@@ -114,6 +168,26 @@ export default function EnquiryCartPage({ onNavigate, enquiryList, onToggleEnqui
               <svg viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5">
                 <path fillRule="evenodd" d="M8.293 4.293a1 1 0 0 1 1.414 0l3 3a1 1 0 0 1 0 1.414l-3 3a1 1 0 0 1-1.414-1.414L10.086 9H4a1 1 0 0 1 0-2h6.086L8.293 5.707a1 1 0 0 1 0-1.414z" clipRule="evenodd" />
               </svg>
+            </button>
+          </div>
+        ) : submitted ? (
+          /* Success state */
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-16 text-center max-w-lg mx-auto">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" className="w-8 h-8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 className="font-display font-bold text-[#0E2A47] text-2xl mb-3">Enquiry Submitted!</h2>
+            <p className="text-[#5B6B78] text-sm leading-relaxed mb-8">
+              Thank you, <strong>{contact.name}</strong>. Your product enquiry has been received.
+              Our team will respond within 24 hours with pricing and availability.
+            </p>
+            <button
+              onClick={() => onNavigate('products')}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#F2A71B] hover:bg-[#D4920F] text-[#0E2A47] font-bold text-sm rounded-lg transition-colors"
+            >
+              Browse More Products
             </button>
           </div>
         ) : (
@@ -155,17 +229,10 @@ export default function EnquiryCartPage({ onNavigate, enquiryList, onToggleEnqui
                             className="text-[#C8D8E8] hover:text-red-400 transition-colors flex-shrink-0 mt-0.5"
                             aria-label="Remove"
                           >
-                            <svg viewBox="0 0 20 20" fill="currentColor" className="w-4.5 h-4.5">
+                            <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                               <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clipRule="evenodd" />
                             </svg>
                           </button>
-                        </div>
-                        <div className="flex flex-wrap gap-1.5 mt-3">
-                          {product.protectionTypes.map(t => (
-                            <span key={t} className="text-[9px] font-medium text-[#5B6B78] bg-[#F7F8FA] border border-gray-200 px-2 py-0.5 rounded">
-                              {t}
-                            </span>
-                          ))}
                         </div>
                       </div>
 
@@ -191,12 +258,6 @@ export default function EnquiryCartPage({ onNavigate, enquiryList, onToggleEnqui
                             </button>
                           </div>
                         </div>
-                        <button
-                          onClick={() => onNavigate('products')}
-                          className="text-[11px] text-[#F2A71B] hover:text-[#D4920F] font-semibold transition-colors"
-                        >
-                          View Details →
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -204,14 +265,15 @@ export default function EnquiryCartPage({ onNavigate, enquiryList, onToggleEnqui
               })}
             </div>
 
-            {/* Summary panel */}
+            {/* Summary + Contact form panel */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 lg:sticky lg:top-24">
-                <h2 className="font-display font-bold text-[#0E2A47] text-base mb-5 pb-4 border-b border-gray-100">
-                  Enquiry Summary
+                <h2 className="font-display font-bold text-[#0E2A47] text-base mb-4 pb-3 border-b border-gray-100">
+                  Submit Enquiry
                 </h2>
 
-                <ul className="space-y-3 mb-6">
+                {/* Product summary */}
+                <ul className="space-y-2 mb-5">
                   {products.map(p => (
                     <li key={p.id} className="flex items-start justify-between gap-3">
                       <span className="text-[11px] text-[#5B6B78] leading-snug flex-1 line-clamp-2">{p.name}</span>
@@ -222,39 +284,82 @@ export default function EnquiryCartPage({ onNavigate, enquiryList, onToggleEnqui
                   ))}
                 </ul>
 
-                <div className="space-y-3">
+                {/* Contact form */}
+                <form onSubmit={handleSubmit} noValidate className="space-y-3 border-t border-gray-100 pt-4">
+                  <p className="text-[10px] font-bold text-[#0E2A47] tracking-widest uppercase mb-1">Your Details</p>
+
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Your name *"
+                      value={contact.name}
+                      onChange={setC('name')}
+                      className={IC}
+                    />
+                    {contactErrors.name && <p className="mt-1 text-[11px] text-[#E53935]">{contactErrors.name}</p>}
+                  </div>
+                  <div>
+                    <input
+                      type="email"
+                      placeholder="Email address *"
+                      value={contact.email}
+                      onChange={setC('email')}
+                      className={IC}
+                    />
+                    {contactErrors.email && <p className="mt-1 text-[11px] text-[#E53935]">{contactErrors.email}</p>}
+                  </div>
+                  <div>
+                    <input
+                      type="tel"
+                      placeholder="Phone number *"
+                      value={contact.phone}
+                      onChange={setC('phone')}
+                      className={IC}
+                    />
+                    {contactErrors.phone && <p className="mt-1 text-[11px] text-[#E53935]">{contactErrors.phone}</p>}
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Company name"
+                      value={contact.company}
+                      onChange={setC('company')}
+                      className={IC}
+                    />
+                  </div>
+                  <div>
+                    <textarea
+                      placeholder="Additional notes (optional)"
+                      value={contact.message}
+                      onChange={setC('message')}
+                      rows={3}
+                      className={IC + ' resize-none'}
+                    />
+                  </div>
+
+                  {serverError && (
+                    <p className="text-xs text-[#E53935] bg-red-50 border border-red-100 rounded-lg px-3 py-2">{serverError}</p>
+                  )}
+
                   <button
-                    onClick={handleSubmitWhatsApp}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#25D366] hover:bg-[#1ebe5e] text-white font-bold text-sm rounded-lg transition-colors"
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full py-3 bg-[#F2A71B] hover:bg-[#D4920F] disabled:opacity-60 disabled:cursor-not-allowed text-[#0E2A47] font-bold text-sm rounded-lg transition-colors"
                   >
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4.5 h-4.5">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                    </svg>
-                    Submit via WhatsApp
+                    {submitting ? 'Submitting…' : 'Submit Enquiry →'}
                   </button>
 
-                  <a
-                    href={`mailto:enquiry@cndhitech.com?subject=Product Enquiry&body=${encodeURIComponent(
-                      products.map(p => `${p.name} (${p.catNo}) — Qty: ${quantities[p.id] ?? 1}`).join('\n')
-                    )}`}
-                    className="w-full flex items-center justify-center gap-2 py-3 border border-gray-200 text-[#0E2A47] font-semibold text-sm rounded-lg hover:bg-[#F7F8FA] transition-colors"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                    </svg>
-                    Send via Email
-                  </a>
-
                   <button
+                    type="button"
                     onClick={() => onNavigate('products')}
-                    className="w-full py-2.5 text-[#5B6B78] hover:text-[#0E2A47] text-sm font-medium transition-colors"
+                    className="w-full py-2 text-[#5B6B78] hover:text-[#0E2A47] text-sm font-medium transition-colors"
                   >
                     ← Continue Shopping
                   </button>
-                </div>
+                </form>
 
-                <p className="mt-5 text-[10px] text-[#C8D8E8] leading-relaxed text-center">
-                  We respond with full pricing &amp; availability within 24 hours.
+                <p className="mt-4 text-[10px] text-[#C8D8E8] leading-relaxed text-center">
+                  We respond with pricing &amp; availability within 24 hours.
                 </p>
               </div>
             </div>

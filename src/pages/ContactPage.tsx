@@ -74,6 +74,8 @@ function RFQForm() {
   const [form, setForm] = useState<RFQForm>({ name: '', surname: '', email: '', phone: '', department: '', companyName: '', companyType: '', state: '', city: '', inquiry: '' })
   const [errors, setErrors] = useState<RFQErrors>({})
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [serverError, setServerError] = useState('')
 
   const set = (k: keyof RFQForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm(prev => ({ ...prev, [k]: e.target.value }))
@@ -96,12 +98,28 @@ function RFQForm() {
     return Object.keys(errs).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validate()) return
-    const msg = `Hi CND Hi-Tech,%0A%0A*REQUEST FOR QUOTATION*%0A%0AName: ${form.name} ${form.surname}%0AEmail: ${form.email}%0APhone: ${form.phone}%0ADepartment: ${form.department}%0ACompany: ${form.companyName}%0AType: ${form.companyType}%0AState: ${form.state}%0ACity: ${form.city}%0A%0AInquiry: ${form.inquiry}`
-    window.open(`https://wa.me/919994233119?text=${msg}`, '_blank')
-    setSubmitted(true)
+    setSubmitting(true)
+    setServerError('')
+    try {
+      const res = await fetch('/api/form-submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'rfq', ...form }),
+      })
+      const data = await res.json() as { success?: boolean; error?: string }
+      if (!res.ok || !data.success) {
+        setServerError(data.error ?? 'Something went wrong. Please try again.')
+        return
+      }
+      setSubmitted(true)
+    } catch {
+      setServerError('Network error. Please check your connection and try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   if (submitted) {
@@ -114,7 +132,7 @@ function RFQForm() {
         </div>
         <h3 className="text-lg font-bold text-[#0E2A47] mb-2">Request Submitted!</h3>
         <p className="text-sm text-[#5B6B78] mb-5 leading-relaxed">
-          Thank you, <strong>{form.name}</strong>. Your quotation request has been sent via WhatsApp. We will respond within 24 hours.
+          Thank you, <strong>{form.name}</strong>. Your enquiry has been received. We will respond within 24 hours.
         </p>
         <button onClick={() => { setSubmitted(false); setForm({ name: '', surname: '', email: '', phone: '', department: '', companyName: '', companyType: '', state: '', city: '', inquiry: '' }) }}
           className="px-6 py-2.5 bg-[#F2A71B] text-[#0E2A47] font-bold text-sm rounded-lg hover:bg-[#D4920F] transition-colors">
@@ -178,8 +196,13 @@ function RFQForm() {
             className={IC + ' resize-none'} />
         </F>
 
-        <button type="submit" className="w-full py-3.5 bg-[#F2A71B] hover:bg-[#D4920F] text-[#0E2A47] font-bold text-sm tracking-wide rounded-lg transition-colors duration-150">
-          REQUEST A QUOTE
+        {serverError && (
+          <p className="text-sm text-[#E53935] bg-red-50 border border-red-100 rounded-lg px-4 py-3">{serverError}</p>
+        )}
+
+        <button type="submit" disabled={submitting}
+          className="w-full py-3.5 bg-[#F2A71B] hover:bg-[#D4920F] disabled:opacity-60 disabled:cursor-not-allowed text-[#0E2A47] font-bold text-sm tracking-wide rounded-lg transition-colors duration-150">
+          {submitting ? 'SUBMITTING…' : 'REQUEST A QUOTE'}
         </button>
       </form>
     </div>

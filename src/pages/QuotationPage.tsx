@@ -70,6 +70,8 @@ export default function QuotationPage({ onNavigate }: Props) {
   const [industry, setIndustry] = useState(ctx.industry ?? '')
   const [errors, setErrors] = useState<Errors>({})
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [serverError, setServerError] = useState('')
 
   const set = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm(prev => ({ ...prev, [k]: e.target.value }))
@@ -92,12 +94,33 @@ export default function QuotationPage({ onNavigate }: Props) {
     return Object.keys(errs).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validate()) return
-    const msg = `Hi CND Hi-Tech,%0A%0A*REQUEST FOR QUOTATION*%0A%0AName: ${form.name} ${form.surname}%0AEmail: ${form.email}%0APhone: ${form.phone}%0ADepartment: ${form.department}%0ACompany: ${form.companyName}%0ACompany Type: ${form.companyType}%0AState: ${form.state}%0ACity: ${form.city}%0A%0A${ctx.product ? `Product: ${ctx.product.name}${ctx.product.code ? ` (${ctx.product.code})` : ''}%0A` : ''}${industry ? `Industry: ${industry}%0A` : ''}%0AInquiry:%0A${encodeURIComponent(form.inquiry)}`
-    window.open(`https://wa.me/919994233119?text=${msg}`, '_blank')
-    setSubmitted(true)
+    setSubmitting(true)
+    setServerError('')
+    try {
+      const res = await fetch('/api/form-submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'quotation',
+          ...form,
+          product: ctx.product ? `${ctx.product.name}${ctx.product.code ? ` (${ctx.product.code})` : ''}` : undefined,
+          industry: industry || undefined,
+        }),
+      })
+      const data = await res.json() as { success?: boolean; error?: string }
+      if (!res.ok || !data.success) {
+        setServerError(data.error ?? 'Something went wrong. Please try again.')
+        return
+      }
+      setSubmitted(true)
+    } catch {
+      setServerError('Network error. Please check your connection and try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   if (submitted) {
@@ -111,7 +134,7 @@ export default function QuotationPage({ onNavigate }: Props) {
           </div>
           <h2 className="text-xl font-bold text-[#0E2A47] mb-3">Quotation Request Sent!</h2>
           <p className="text-sm text-[#5B6B78] leading-relaxed mb-6">
-            Thank you, <strong>{form.name}</strong>. Your request for quotation has been submitted via WhatsApp.
+            Thank you, <strong>{form.name}</strong>. Your quotation request has been received.
             Our team will get back to you within 24 hours with pricing and technical documentation.
           </p>
           <div className="flex flex-col gap-3">
@@ -255,15 +278,19 @@ export default function QuotationPage({ onNavigate }: Props) {
               By submitting this form you agree to be contacted by CND Hi-Tech Co. regarding your quotation request.
               Your information will not be shared with third parties.
             </p>
+            {serverError && (
+              <p className="text-sm text-[#E53935] bg-red-50 border border-red-100 rounded-lg px-4 py-3 mb-4">{serverError}</p>
+            )}
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 type="submit"
-                className="flex-1 py-3.5 bg-[#F2A71B] hover:bg-[#D4920F] text-[#0E2A47] font-bold text-sm tracking-wide rounded-lg transition-colors duration-150 flex items-center justify-center gap-2"
+                disabled={submitting}
+                className="flex-1 py-3.5 bg-[#F2A71B] hover:bg-[#D4920F] disabled:opacity-60 disabled:cursor-not-allowed text-[#0E2A47] font-bold text-sm tracking-wide rounded-lg transition-colors duration-150 flex items-center justify-center gap-2"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                REQUEST A QUOTE
+                {submitting ? 'SUBMITTING…' : 'REQUEST A QUOTE'}
               </button>
               <button
                 type="button"

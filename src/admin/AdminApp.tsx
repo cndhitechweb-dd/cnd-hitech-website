@@ -11,9 +11,11 @@ import Catalogue from './pages/Catalogue'
 import Media from './pages/Media'
 import Specifications from './pages/Specifications'
 import SettingsPage from './pages/Settings'
+import AdminSubmissionsPage from '../admin/AdminSubmissionsPage'
 
 const NAV = [
   { to: '/admin', label: 'Dashboard', icon: 'dashboard', end: true },
+  { to: '/admin/submissions', label: 'Enquiries', icon: 'mail' },
   { to: '/admin/products', label: 'Products', icon: 'box' },
   { to: '/admin/categories', label: 'Categories', icon: 'tag' },
   { to: '/admin/catalogue', label: 'Catalogue / PDFs', icon: 'doc' },
@@ -201,6 +203,7 @@ const router = createBrowserRouter([
           { path: 'specifications', Component: Specifications },
           { path: 'media', Component: Media },
           { path: 'settings', Component: SettingsPage },
+          { path: 'submissions', Component: AdminSubmissionsPage },
           { path: '*', Component: NotFound },
         ],
       },
