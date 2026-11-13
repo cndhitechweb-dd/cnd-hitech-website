@@ -3,13 +3,13 @@
 //
 // Required env vars in Vercel → Project → Settings → Environment Variables:
 //   GITHUB_TOKEN        — GitHub PAT (contents:write + issues:write)
-//   GMAIL_USER          — cndhitech.india@gmail.com
-//   GMAIL_APP_PASSWORD  — 16-char Gmail App Password (see setup below)
+//   GMAIL_USER          — cndhitech.web@gmail.com  (SMTP login — web account)
+//   GMAIL_APP_PASSWORD  — 16-char Gmail App Password for cndhitech.web@gmail.com
 //
-// Gmail App Password setup (one-time):
-//   1. Go to myaccount.google.com → Security
+// Gmail App Password setup (one-time, for cndhitech.web@gmail.com):
+//   1. Go to myaccount.google.com → Security  (sign in as cndhitech.web@gmail.com)
 //   2. Turn ON 2-Step Verification (if not already)
-//   3. Search "App passwords" → Select app: Mail → Device: Other → "CND Website"
+//   3. Search "App passwords" → App name: "CND Website" → Create
 //   4. Copy the 16-character password → paste in Vercel env var GMAIL_APP_PASSWORD
 
 import nodemailer from 'nodemailer'
@@ -19,8 +19,9 @@ const REPO   = 'cndhitechweb-dd/cnd-hitech-website'
 const BRANCH = 'main'
 const FILE   = 'public/data/submissions.json'
 
-const TO_EMAIL  = 'cndhitech.india@gmail.com'
-const CC_EMAIL  = 'cndhitech.web@gmail.com'
+// Primary recipient = web account (SMTP sender); CC = client's main account
+const TO_EMAIL  = 'cndhitech.web@gmail.com'    // primary — SMTP login account
+const CC_EMAIL  = 'cndhitech.india@gmail.com'  // client gets CC (no credentials needed)
 
 export interface Submission {
   id: string
@@ -173,8 +174,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   const token          = process.env.GITHUB_TOKEN
-  const gmailUser      = process.env.GMAIL_USER          // cndhitech.india@gmail.com
-  const gmailPassword  = process.env.GMAIL_APP_PASSWORD  // 16-char App Password
+  const gmailUser      = process.env.GMAIL_USER          // cndhitech.web@gmail.com (SMTP login)
+  const gmailPassword  = process.env.GMAIL_APP_PASSWORD  // App Password for cndhitech.web@gmail.com
 
   if (!token) return res.status(500).json({ error: 'Server configuration error.' })
 
