@@ -1,2 +1,19 @@
-[]
-
+[
+  {
+    "id": "sub-1794540404461-fspn2",
+    "submittedAt": "2026-11-13T03:26:44.461Z",
+    "status": "new",
+    "type": "quotation",
+    "name": "S",
+    "surname": "DD",
+    "email": "sakthi@datadriven-services.com",
+    "phone": "9787848389",
+    "department": "Engineering",
+    "companyName": "DD",
+    "companyType": "Automobile Manufacturer",
+    "state": "Tamil Nadu",
+    "city": "Chennai",
+    "inquiry": "hjdqjwd",
+    "industry": "Paints"
+  }
+]
