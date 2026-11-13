@@ -29,6 +29,19 @@ const IC = 'w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:o
 type RFQForm = { name: string; surname: string; email: string; phone: string; department: string; companyName: string; companyType: string; state: string; city: string; inquiry: string }
 type RFQErrors = Partial<Record<keyof RFQForm, string>>
 
+// Field wrapper — defined at MODULE level (not inside any component) to prevent re-mount on each keystroke
+function F({ label, req, err, children }: { label: string; req?: boolean; err?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-[11px] font-bold text-[#0E2A47] mb-1.5 tracking-wide">
+        {label}{req && <span className="text-[#E53935] ml-0.5">*</span>}
+      </label>
+      {children}
+      {err && <p className="mt-1 text-[11px] text-[#E53935]">{err}</p>}
+    </div>
+  )
+}
+
 const CONTACT_DETAILS = [
   {
     icon: 'M15 10.5a3 3 0 11-6 0 3 3 0 016 0z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z',
@@ -141,16 +154,6 @@ function RFQForm() {
       </div>
     )
   }
-
-  const F = ({ label, req, err, children }: { label: string; req?: boolean; err?: string; children: React.ReactNode }) => (
-    <div>
-      <label className="block text-[11px] font-bold text-[#0E2A47] mb-1.5 tracking-wide">
-        {label}{req && <span className="text-[#E53935] ml-0.5">*</span>}
-      </label>
-      {children}
-      {err && <p className="mt-1 text-[11px] text-[#E53935]">{err}</p>}
-    </div>
-  )
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
