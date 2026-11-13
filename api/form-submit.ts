@@ -215,11 +215,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       })
 
       await transporter.sendMail({
-        from: `"CND Hi-Tech Website" <${gmailUser}>`,
+        from: `"${newEntry.name} ${newEntry.surname} via CND Website" <${gmailUser}>`,
         to: TO_EMAIL,
         cc: CC_EMAIL,
         replyTo: newEntry.email,
-        subject: `[${newEntry.type.toUpperCase()}] ${newEntry.name} ${newEntry.surname}${newEntry.companyName ? ` — ${newEntry.companyName}` : ''}`,
+        subject: `[${newEntry.type.toUpperCase()}] ${newEntry.name} ${newEntry.surname} <${newEntry.email}>${newEntry.companyName ? ` — ${newEntry.companyName}` : ''}`,
         html: buildEmailHtml(newEntry),
         text: buildEmailText(newEntry),
       })
