@@ -15,5 +15,21 @@
     "city": "Chennai",
     "inquiry": "hjdqjwd",
     "industry": "Paints"
+  },
+  {
+    "id": "sub-1794547817231-p5umf",
+    "submittedAt": "2026-11-13T05:30:17.231Z",
+    "status": "new",
+    "type": "rfq",
+    "name": "dd",
+    "surname": "ss",
+    "email": "sakthi@datadriven-services.com",
+    "phone": "9874563210",
+    "department": "Engineering",
+    "companyName": "dd",
+    "companyType": "Automobile Manufacturer",
+    "state": "Tamil Nadu",
+    "city": "chennai",
+    "inquiry": "dd test"
   }
 ]
