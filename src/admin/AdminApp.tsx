@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { createBrowserRouter, Link, Navigate, NavLink, Outlet, RouterProvider, useLocation, useNavigate } from 'react-router'
+import { Link, Navigate, NavLink, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router'
 import { LogoImage } from '../components/Logo'
 import { login, logout, useSession } from './auth'
 import { Button, Field, Icon, inputCls, ToastProvider, useToast } from './ui'
@@ -181,36 +181,26 @@ function NotFound() {
   )
 }
 
-function Root() {
-  return <ToastProvider><Outlet /></ToastProvider>
-}
-
-const router = createBrowserRouter([
-  {
-    path: '/admin',
-    Component: Root,
-    children: [
-      { path: 'login', Component: Login },
-      {
-        Component: Shell,
-        children: [
-          { index: true, Component: Dashboard },
-          { path: 'products', Component: ProductsList },
-          { path: 'products/new', Component: ProductForm },
-          { path: 'products/:id/edit', Component: ProductForm },
-          { path: 'categories', Component: Categories },
-          { path: 'catalogue', Component: Catalogue },
-          { path: 'specifications', Component: Specifications },
-          { path: 'media', Component: Media },
-          { path: 'settings', Component: SettingsPage },
-          { path: 'submissions', Component: AdminSubmissionsPage },
-          { path: '*', Component: NotFound },
-        ],
-      },
-    ],
-  },
-])
 
 export default function AdminApp() {
-  return <RouterProvider router={router} />
+  return (
+    <ToastProvider>
+      <Routes>
+        <Route path="login" element={<Login />} />
+        <Route element={<Shell />}>
+          <Route index element={<Dashboard />} />
+          <Route path="products" element={<ProductsList />} />
+          <Route path="products/new" element={<ProductForm />} />
+          <Route path="products/:id/edit" element={<ProductForm />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="catalogue" element={<Catalogue />} />
+          <Route path="specifications" element={<Specifications />} />
+          <Route path="media" element={<Media />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="submissions" element={<AdminSubmissionsPage />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
+    </ToastProvider>
+  )
 }
