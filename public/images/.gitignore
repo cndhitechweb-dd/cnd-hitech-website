@@ -1,0 +1,17 @@
+# Admin-uploaded product images are managed directly via GitHub API.
+# They must NEVER be committed from local — the admin panel uploads
+# them to GitHub directly, and local copies will always be stale.
+#
+# DO NOT run: git add public/images/
+#
+# If you accidentally do, the uploaded images on GitHub will be overwritten
+# with outdated local copies and appear broken on the website.
+
+# Ignore ALL image files in this folder from local git tracking:
+*.webp
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.avif
+
