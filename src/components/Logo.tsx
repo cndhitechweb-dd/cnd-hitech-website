@@ -1,4 +1,4 @@
-import cndLogoImg from '../imports/CND_LOGO_2026-5.png'
+import cndLogoImg from '../imports/CND_LOGO_2026-5.webp'
 
 const RED_ICON_FILTER = 'brightness(0) invert(1) sepia(1) saturate(10) hue-rotate(320deg) brightness(0.78)'
 

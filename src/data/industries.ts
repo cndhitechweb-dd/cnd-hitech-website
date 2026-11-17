@@ -1,5 +1,3 @@
-import heroBgImg from '../imports/hero-bg.jpg'
-
 export interface IndustryApplication {
   title: string
   desc: string
@@ -45,8 +43,8 @@ export const INDUSTRIES: Industry[] = [
     slug: 'oil-gas',
     name: 'Oil & Gas',
     shortDesc: 'Certified explosion-proof equipment for onshore and offshore oil & gas processing facilities.',
-    cardImg: 'https://images.unsplash.com/photo-1523294587484-bae6cc870010?w=700&h=480&q=80&fit=crop',
-    heroImg: heroBgImg,
+    cardImg: 'https://images.unsplash.com/photo-1569511166187-99e4a3d5de55?w=700&h=480&q=80&fit=crop',
+    heroImg: 'https://images.unsplash.com/photo-1495366691023-cc4eadcc2d7e?w=1600&h=700&q=80&fit=crop',
     eyebrow: 'OIL & GAS',
     heroHeading: 'Explosion-Proof Solutions for Oil & Gas',
     heroSub: 'CND Hi-Tech supplies certified flameproof and explosion-proof lighting, junction boxes, control stations and communication equipment for Zone 1 & Zone 2 hazardous areas across onshore and offshore oil & gas facilities.',
@@ -56,7 +54,7 @@ export const INDUSTRIES: Industry[] = [
       'CND Hi-Tech supplies explosion-proof, flameproof (Ex d) and increased-safety (Ex e) certified equipment designed to operate safely within these classified areas. All products conform to IS/IEC 60079 standards and carry CIMFR, PESO, BIS and IECEx approvals where applicable.',
       'Our product range covers the complete electrical infrastructure requirements for oil & gas installations — from weatherproof floodlights for open process areas to flameproof junction boxes for instrumentation wiring and interlocked plug & socket assemblies for portable equipment power.',
     ],
-    aboutImg: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&h=600&q=80&fit=crop',
+    aboutImg: 'https://images.unsplash.com/photo-1540908489236-15aac66d9a53?w=800&h=600&q=80&fit=crop',
     applications: [
       { title: 'Refineries & Process Units', desc: 'Flameproof lighting and control equipment for distillation columns, reaction vessels and process piping corridors.', iconPath: ICONS.building },
       { title: 'Storage & Tank Farms', desc: 'Explosion-proof floodlights, junction boxes and cable glands for above-ground storage tank enclosures.', iconPath: ICONS.tank },
@@ -71,7 +69,7 @@ export const INDUSTRIES: Industry[] = [
     slug: 'petrochemical',
     name: 'Petrochemical',
     shortDesc: 'Flameproof lighting and control equipment for petrochemical processing and refining environments.',
-    cardImg: 'https://images.unsplash.com/photo-1768564206500-5cddb1fea679?w=700&h=480&q=80&fit=crop',
+    cardImg: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=700&h=480&q=80&fit=crop',
     heroImg: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1600&h=700&q=80&fit=crop',
     eyebrow: 'PETROCHEMICAL',
     heroHeading: 'Explosion-Proof Solutions for Petrochemical Plants',
@@ -82,7 +80,7 @@ export const INDUSTRIES: Industry[] = [
       'Electrical equipment installed in these areas must carry recognised hazardous area certifications and be selected according to the applicable gas group and temperature class. CND Hi-Tech products are certified to international Ex standards and comply with Indian regulatory requirements under PESO, CIMFR and BIS.',
       'Our range covers the full scope of electrical infrastructure for petrochemical plants — robust flameproof luminaires for process areas, weatherproof junction boxes for field instrumentation, rated control stations for motor-driven equipment, and certified cable glands for armoured cable terminations.',
     ],
-    aboutImg: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&h=600&q=80&fit=crop',
+    aboutImg: 'https://images.unsplash.com/photo-1565688534245-05d6b5be184a?w=800&h=600&q=80&fit=crop',
     applications: [
       { title: 'Cracking & Reforming Units', desc: 'Flameproof lighting and junction boxes for catalytic cracking and reforming process areas.', iconPath: ICONS.process },
       { title: 'Distillation Columns', desc: 'Ex d certified luminaires and wiring accessories for column structures and associated pipe racks.', iconPath: ICONS.building },
@@ -97,8 +95,8 @@ export const INDUSTRIES: Industry[] = [
     slug: 'pharmaceuticals',
     name: 'Pharmaceuticals',
     shortDesc: 'Explosion-proof solutions for pharmaceutical manufacturing with solvent and dust hazard zones.',
-    cardImg: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=700&h=480&q=80&fit=crop',
-    heroImg: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?w=1600&h=700&q=80&fit=crop',
+    cardImg: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=700&h=480&q=80&fit=crop',
+    heroImg: 'https://images.unsplash.com/photo-1587556930799-8dca6fad6d41?w=1600&h=700&q=80&fit=crop',
     eyebrow: 'PHARMACEUTICALS',
     heroHeading: 'Explosion-Proof Solutions for Pharmaceutical Manufacturing',
     heroSub: 'CND Hi-Tech supplies certified Ex d and Ex tb rated electrical equipment for pharmaceutical plants where flammable solvents, alcohols and combustible dust create Zone 1, Zone 2, Zone 21 and Zone 22 classified areas.',
@@ -108,7 +106,7 @@ export const INDUSTRIES: Industry[] = [
       'Regulatory compliance for hazardous area electrical equipment in pharmaceutical facilities is governed by IS/IEC 60079 for gas/vapour hazards and IS/IEC 60079-31 for dust hazards. CND Hi-Tech supplies products with Ex d (flameproof) and Ex tb (dust-ignition-proof) protection to cover both hazard types.',
       'Our certified luminaires and control equipment are used in solvent handling areas, API manufacturing suites, spray-drying installations, and bulk chemical storage areas where standard equipment cannot be safely installed.',
     ],
-    aboutImg: 'https://images.unsplash.com/photo-1583911860205-72f8ac8ddcbe?w=800&h=600&q=80&fit=crop',
+    aboutImg: 'https://images.unsplash.com/photo-1563213126-a4273aed2016?w=800&h=600&q=80&fit=crop',
     applications: [
       { title: 'API Manufacturing Areas', desc: 'Flameproof lighting and junction boxes for solvent-based API synthesis and reaction suites.', iconPath: ICONS.lab },
       { title: 'Solvent Storage & Handling', desc: 'Ex d rated equipment for bulk solvent tanks, drum stores and solvent dispensing areas.', iconPath: ICONS.tank },
@@ -123,8 +121,8 @@ export const INDUSTRIES: Industry[] = [
     slug: 'chemicals',
     name: 'Chemicals',
     shortDesc: 'Certified hazardous-area equipment for chemical manufacturing and solvent processing facilities.',
-    cardImg: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&h=480&q=80&fit=crop',
-    heroImg: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=1600&h=700&q=80&fit=crop',
+    cardImg: 'https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=700&h=480&q=80&fit=crop',
+    heroImg: 'https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=1600&h=700&q=80&fit=crop',
     eyebrow: 'CHEMICALS',
     heroHeading: 'Explosion-Proof Solutions for Chemical Manufacturing',
     heroSub: 'CND Hi-Tech supplies flameproof and increased-safety certified equipment for chemical plants handling flammable solvents, reactive compounds and hazardous gases across Zone 1 and Zone 2 classified locations.',
@@ -175,8 +173,8 @@ export const INDUSTRIES: Industry[] = [
     slug: 'automobiles',
     name: 'Automobiles',
     shortDesc: 'Industrial explosion-proof equipment for automotive paint shops, fuel testing and coating lines.',
-    cardImg: 'https://images.unsplash.com/photo-1716191299980-a6e8827ba10b?w=700&h=480&q=80&fit=crop',
-    heroImg: 'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=1600&h=700&q=80&fit=crop',
+    cardImg: 'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=700&h=480&q=80&fit=crop',
+    heroImg: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=1600&h=700&q=80&fit=crop',
     eyebrow: 'AUTOMOBILES',
     heroHeading: 'Explosion-Proof Solutions for Automotive Manufacturing',
     heroSub: 'CND Hi-Tech supplies certified flameproof electrical equipment for automotive manufacturing environments — specifically paint shops, coating lines, fuel system test cells and finishing areas where flammable vapours are present.',
@@ -186,7 +184,7 @@ export const INDUSTRIES: Industry[] = [
       'The paint shop environment typically involves solvent vapours from spray application, flash-off zones and drying ovens, all requiring Ex d certified electrical equipment. Temperature classification is particularly important in oven areas where hot surfaces can act as ignition sources.',
       'CND Hi-Tech supplies flameproof luminaires, control stations, switches and junction boxes suitable for use in automotive paint shop environments and fuel system areas — providing safe, reliable electrical infrastructure without compromising production efficiency.',
     ],
-    aboutImg: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&h=600&q=80&fit=crop',
+    aboutImg: 'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=800&h=600&q=80&fit=crop',
     applications: [
       { title: 'Vehicle Paint Shops', desc: 'Flameproof lighting and control stations for spray booths and flash-off zones in automotive paint lines.', iconPath: ICONS.spray },
       { title: 'Body Coating & Primer Lines', desc: 'Ex d certified luminaires and switches for primer application and dip-coating process areas.', iconPath: ICONS.process },

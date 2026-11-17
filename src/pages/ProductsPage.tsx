@@ -329,7 +329,12 @@ export function ProductDetailPage({
 
   useEffect(() => { setActiveImg(product.img); setQuantity(1) }, [product])
 
-  const openPdf = () => product.pdfUrl && window.open(product.pdfUrl, '_blank', 'noopener,noreferrer')
+  const openPdf = () => {
+    if (!product.pdfUrl) return
+    // Use Google Docs viewer so PDF opens in browser tab instead of downloading
+    const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(product.pdfUrl)}&embedded=false`
+    window.open(viewerUrl, '_blank', 'noopener,noreferrer')
+  }
   const specEntries = Object.entries(product.specs)
 
   return (
@@ -501,13 +506,12 @@ export function ProductDetailPage({
         {/* PDF downloads (only when a PDF is attached) */}
         {product.pdfs.length > 0 && (
           <div className="flex flex-col gap-3">
-            {product.pdfs.map(pdf => (
+            {product.pdfs.map(pdf =>(
               <a
                 key={pdf.id}
-                href={pdf.url}
+                href={`https://docs.google.com/viewer?url=${encodeURIComponent(pdf.url)}&embedded=false`}
                 target="_blank"
                 rel="noopener noreferrer"
-                download={`${pdf.name.replace(/\.pdf$/i, '')}.pdf`}
                 className="w-full flex items-center gap-4 p-4 bg-[#0E2A47] hover:bg-[#163A5F] rounded-xl transition-colors duration-150 group/pdf"
               >
                 <div className="w-10 h-10 rounded bg-[#F2A71B] flex items-center justify-center flex-shrink-0">
@@ -517,8 +521,8 @@ export function ProductDetailPage({
                   </svg>
                 </div>
                 <div className="text-left">
-                  <div className="text-white text-sm font-bold">{pdf.type === 'Product Catalogue' ? 'Download Catalogue' : 'Download Product PDF'} — {pdf.name}</div>
-                  <div className="text-[#AABDD0] text-xs">Opens the PDF in a new tab →</div>
+                  <div className="text-white text-sm font-bold">{pdf.type === 'Product Catalogue' ? 'View Catalogue' : 'View Product PDF'} — {pdf.name}</div>
+                  <div className="text-[#AABDD0] text-xs">Opens in a new tab →</div>
                 </div>
                 <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-[#F2A71B] ml-auto flex-shrink-0 group-hover/pdf:translate-x-0.5 transition-transform">
                   <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />

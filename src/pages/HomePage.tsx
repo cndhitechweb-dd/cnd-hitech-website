@@ -1,7 +1,7 @@
 import { getPublicData, usePublicData } from '../data/store'
 import type { Page } from '../App'
-import heroBgImg from '../imports/hero-bg.jpg'
-import balikaLogoImg from '../imports/baliga-logo.png'
+import heroBgImg from '../imports/hero-bg.webp'
+import balikaLogoImg from '../imports/baliga-logo.webp'
 
 interface Props {
   onNavigate: (page: Page, industrySlug?: string) => void
