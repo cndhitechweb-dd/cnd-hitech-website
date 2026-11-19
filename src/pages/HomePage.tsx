@@ -64,14 +64,14 @@ const SPEC_PRODUCTS = [
 
 const INDUSTRIES_4 = [
   {
-    name: 'Paints',
-    slug: 'paints',
-    img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&h=480&q=80&fit=crop',
+    name: 'Oil & Gas',
+    slug: 'oil-gas',
+    img: 'https://images.unsplash.com/photo-1569511166187-99e4a3d5de55?w=700&h=480&q=80&fit=crop',
   },
   {
-    name: 'Automobiles',
-    slug: 'automobiles',
-    img: 'https://images.unsplash.com/photo-1716191299980-a6e8827ba10b?w=700&h=480&q=80&fit=crop',
+    name: 'Pharmaceuticals',
+    slug: 'pharmaceuticals',
+    img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=700&h=480&q=80&fit=crop',
   },
   {
     name: 'Power Plants',
@@ -79,9 +79,9 @@ const INDUSTRIES_4 = [
     img: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=700&h=480&q=80&fit=crop',
   },
   {
-    name: 'Chemicals',
-    slug: 'chemicals',
-    img: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&h=480&q=80&fit=crop',
+    name: 'Automobiles',
+    slug: 'automobiles',
+    img: 'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=700&h=480&q=80&fit=crop',
   },
 ]
 

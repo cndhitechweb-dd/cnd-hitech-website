@@ -247,49 +247,56 @@ function ProductCard({ product, inEnquiry, onViewDetails, onToggleEnquiry }: Car
   const [imgLoaded, setImgLoaded] = useState(false)
 
   return (
-    <div className="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-[0_4px_24px_rgba(14,42,71,0.1)] hover:border-[#F2A71B]/40 transition-all duration-200 group overflow-hidden flex flex-col">
-      <div className="relative aspect-square overflow-hidden cursor-pointer" style={{ background: product.imgBg }} onClick={onViewDetails}>
-        {!imgLoaded && <div className="absolute inset-0 animate-pulse" style={{ background: product.imgBg }} />}
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-[0_6px_28px_rgba(14,42,71,0.12)] hover:border-[#F2A71B]/40 transition-all duration-200 group overflow-hidden flex flex-col">
+      {/* Image */}
+      <div className="relative overflow-hidden cursor-pointer" style={{ background: product.imgBg, aspectRatio: '1/1' }} onClick={onViewDetails}>
+        {!imgLoaded && <div className="absolute inset-0 animate-pulse bg-gray-100" />}
         <img
           src={product.img}
           alt={product.name}
           onLoad={() => setImgLoaded(true)}
-          className={`w-full h-full transition-all duration-500 group-hover:scale-[1.04] ${imgLoaded ? 'opacity-100' : 'opacity-0'} ${product.productShot ? 'object-contain p-5' : 'object-cover'}`}
+          className={`w-full h-full transition-all duration-500 group-hover:scale-[1.05] ${imgLoaded ? 'opacity-100' : 'opacity-0'} ${product.productShot ? 'object-contain p-5' : 'object-cover'}`}
         />
-        <div className={`absolute inset-0 transition-all duration-300 ${product.productShot ? 'bg-[#0E2A47]/0 group-hover:bg-[#0E2A47]/10' : 'bg-[#0E2A47]/0 group-hover:bg-[#0E2A47]/18'}`} />
-        <div className="absolute top-3 left-3">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#0E2A47] text-[#F2A71B] text-[9.5px] font-bold tracking-wide rounded shadow-sm">
+        {/* Ex badge top-left */}
+        <div className="absolute top-2 left-2">
+          <span className="inline-flex items-center px-1.5 py-0.5 bg-[#0E2A47] text-[#F2A71B] text-[8px] font-bold tracking-wide rounded shadow-sm">
             {product.protectionTypes[0]}
           </span>
         </div>
+        {/* Enquiry toggle top-right */}
         <button
           onClick={e => { e.stopPropagation(); onToggleEnquiry() }}
-          className={`absolute top-3 right-3 w-8 h-8 rounded flex items-center justify-center transition-all duration-150 shadow-sm ${inEnquiry ? 'bg-[#F2A71B] text-[#0E2A47]' : 'bg-white/90 text-[#5B6B78] hover:bg-[#F2A71B] hover:text-[#0E2A47] opacity-0 group-hover:opacity-100'}`}
+          className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-150 shadow-sm ${inEnquiry ? 'bg-[#F2A71B] text-[#0E2A47]' : 'bg-white/90 text-[#5B6B78] hover:bg-[#F2A71B] hover:text-[#0E2A47] opacity-0 group-hover:opacity-100'}`}
           title={inEnquiry ? 'Remove from enquiry' : 'Add to enquiry'}
         >
-          <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+          <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
             {inEnquiry
               ? <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               : <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />}
           </svg>
         </button>
-        {!product.productShot && (
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#071829]/70 to-transparent px-4 py-3">
-            <div className="text-[#F2A71B] text-[10px] font-bold tracking-widest uppercase">{product.catNo}</div>
-          </div>
-        )}
       </div>
-      <div className="p-4 flex flex-col flex-1">
-        {product.productShot && (
-          <div className="text-[#F2A71B] text-[10px] font-bold tracking-widest uppercase mb-1">{product.catNo}</div>
-        )}
-        <h3 className="font-display font-bold text-[#0E2A47] text-sm leading-snug mb-1.5 line-clamp-2">{product.name}</h3>
-        <p className="text-[#5B6B78] text-[11px] leading-relaxed mb-4 flex-1">{product.specSummary}</p>
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <button onClick={onViewDetails} className="text-[#F2A71B] text-xs font-semibold hover:text-[#D4920F] transition-colors flex items-center gap-1">
-            View Details <ArrowRight />
+
+      {/* Info */}
+      <div className="p-3 flex flex-col flex-1">
+        <div className="text-[#F2A71B] text-[9px] font-bold tracking-widest uppercase mb-0.5">{product.catNo}</div>
+        <h3 className="font-display font-semibold text-[#0E2A47] text-[11px] leading-snug mb-1 line-clamp-2 flex-1">{product.name}</h3>
+        <p className="text-[#8DA5BE] text-[10px] leading-relaxed mb-3 line-clamp-2">{product.specSummary}</p>
+        {/* Action row */}
+        <div className="flex gap-2">
+          <button
+            onClick={onViewDetails}
+            className="flex-1 py-1.5 bg-[#F2A71B] hover:bg-[#D4920F] text-[#0E2A47] font-bold text-[10px] rounded-lg transition-colors duration-150"
+          >
+            View Details
           </button>
-          <span className="text-[10px] text-[#5B6B78] bg-[#EEF2F6] px-2 py-0.5 rounded font-medium">{product.category}</span>
+          <button
+            onClick={e => { e.stopPropagation(); onToggleEnquiry() }}
+            className={`px-2.5 py-1.5 rounded-lg border text-[10px] font-semibold transition-all duration-150 ${inEnquiry ? 'bg-[#0E2A47] border-[#0E2A47] text-white' : 'border-gray-200 text-[#5B6B78] hover:border-[#F2A71B] hover:text-[#F2A71B]'}`}
+            title={inEnquiry ? 'Remove from enquiry' : 'Add to enquiry'}
+          >
+            {inEnquiry ? '✓' : '+'}
+          </button>
         </div>
       </div>
     </div>
@@ -803,7 +810,7 @@ function SubcategoriesPage({ categoryLabel, onNavigateHome, onNavigateCategories
                 <p className="text-[#5B6B78] text-xs font-semibold tracking-widest uppercase mb-5">
                   {subcats.length} {subcats.length === 1 ? 'Model Series' : 'Model Series'} in {categoryLabel}
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
                   {subcats.map(sub => {
                     const rep = firstProductForSubcategory(sub)
                     const count = productCountForSubcategory(sub)
@@ -814,39 +821,48 @@ function SubcategoriesPage({ categoryLabel, onNavigateHome, onNavigateCategories
                         onMouseEnter={() => setHovered(sub)}
                         onMouseLeave={() => setHovered(null)}
                         onClick={() => onSelectSubcategory(categoryLabel, sub)}
-                        className={`bg-white rounded-xl border overflow-hidden cursor-pointer transition-all duration-200 flex flex-col shadow-sm ${isHov ? 'border-[#F2A71B]/50 shadow-[0_8px_32px_rgba(14,42,71,0.12)] -translate-y-0.5' : 'border-gray-100'}`}
+                        className={`bg-white rounded-xl border overflow-hidden cursor-pointer transition-all duration-200 flex flex-col shadow-sm ${isHov ? 'border-[#F2A71B]/60 shadow-[0_6px_24px_rgba(14,42,71,0.13)] -translate-y-0.5' : 'border-gray-100 hover:border-gray-200'}`}
                       >
-                        <div className="relative overflow-hidden bg-[#F7F8FA]" style={{ aspectRatio: '4/3' }}>
+                        {/* Image area */}
+                        <div className="relative overflow-hidden bg-[#F7F8FA]" style={{ aspectRatio: '1/1' }}>
                           {rep ? (
                             <img
                               src={rep.img}
                               alt={sub}
-                              className={`w-full h-full transition-transform duration-500 ${isHov ? 'scale-[1.05]' : 'scale-100'} ${rep.productShot ? 'object-contain p-6' : 'object-cover'}`}
+                              className={`w-full h-full transition-transform duration-500 ${isHov ? 'scale-[1.06]' : 'scale-100'} ${rep.productShot ? 'object-contain p-5' : 'object-cover'}`}
                               style={{ background: rep.imgBg }}
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-[#C8D8E8]">{icon}</div>
+                            <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-[#C8D8E8]">
+                              {icon}
+                              <span className="text-[10px] font-medium text-[#C8D8E8]">No Image</span>
+                            </div>
                           )}
+                          {/* Top accent bar on hover */}
                           <div className={`absolute top-0 left-0 right-0 h-0.5 bg-[#F2A71B] transition-opacity duration-200 ${isHov ? 'opacity-100' : 'opacity-0'}`} />
+                          {/* Ex badge */}
                           {rep && (
-                            <div className="absolute top-3 left-3">
-                              <span className="px-2 py-0.5 bg-[#0E2A47]/85 text-[#F2A71B] text-[9.5px] font-bold rounded tracking-wide">
+                            <div className="absolute top-2 left-2">
+                              <span className="px-1.5 py-0.5 bg-[#0E2A47]/80 text-[#F2A71B] text-[8px] font-bold rounded tracking-wide">
                                 {rep.protectionTypes[0]}
                               </span>
                             </div>
                           )}
-                        </div>
-                        <div className="p-4 flex flex-col flex-1">
-                          <h3 className="font-display font-bold text-[#0E2A47] text-sm leading-snug mb-1">{sub}</h3>
-                          <p className="text-[#8DA5BE] text-[10.5px] mb-3 flex-1">
-                            {count} {count === 1 ? 'product variant' : 'product variants'}
-                          </p>
-                          <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
-                            <span className={`text-xs font-bold flex items-center gap-1 transition-colors duration-150 ${isHov ? 'text-[#F2A71B]' : 'text-[#5B6B78]'}`}>
-                              View Details <ArrowRight className={`transition-transform duration-150 ${isHov ? 'translate-x-0.5' : ''}`} />
+                          {/* Variant count badge */}
+                          <div className="absolute top-2 right-2">
+                            <span className="px-1.5 py-0.5 bg-white/90 text-[#0E2A47] text-[8px] font-semibold rounded shadow-sm">
+                              {count} {count === 1 ? 'variant' : 'variants'}
                             </span>
-                            <span className="text-[9.5px] text-[#8DA5BE] uppercase tracking-wide">{categoryLabel}</span>
                           </div>
+                        </div>
+
+                        {/* Info area */}
+                        <div className="p-3 flex flex-col flex-1">
+                          <h3 className="font-display font-bold text-[#0E2A47] text-xs leading-snug mb-1 line-clamp-2">{sub}</h3>
+                          <p className="text-[#8DA5BE] text-[10px] mb-3 flex-1">{categoryLabel}</p>
+                          <button className={`w-full py-1.5 rounded-lg text-[11px] font-bold tracking-wide transition-colors duration-150 ${isHov ? 'bg-[#F2A71B] text-[#0E2A47]' : 'bg-[#F2F4F7] text-[#5B6B78]'}`}>
+                            View Series →
+                          </button>
                         </div>
                       </div>
                     )
@@ -1070,7 +1086,7 @@ function ProductListing({
                 <button onClick={onNavigateSubcategories.bind(null, categoryLabel)} className="px-4 py-2 bg-[#F2A71B] text-[#0E2A47] text-sm font-bold rounded">Back to {categoryLabel}</button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
                 {visible.map(product => (
                   <ProductCard
                     key={product.id}

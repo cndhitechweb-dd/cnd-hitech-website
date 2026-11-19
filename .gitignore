@@ -11,3 +11,9 @@ logs/
 *.log
 .claude-replay.*
 .tmp-*
+
+# Admin-managed files — written via GitHub API directly, NEVER via local git
+# Pushing these from local WILL overwrite real data with old stale versions
+public/images/
+public/data/state.json
+public/data/submissions.json
