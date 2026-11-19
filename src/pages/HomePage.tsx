@@ -66,7 +66,7 @@ const INDUSTRIES_4 = [
   {
     name: 'Oil & Gas',
     slug: 'oil-gas',
-    img: 'https://images.unsplash.com/photo-1569511166187-99e4a3d5de55?w=700&h=480&q=80&fit=crop',
+    img: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=700&h=480&q=80&fit=crop',
   },
   {
     name: 'Pharmaceuticals',
@@ -81,7 +81,7 @@ const INDUSTRIES_4 = [
   {
     name: 'Automobiles',
     slug: 'automobiles',
-    img: 'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=700&h=480&q=80&fit=crop',
+    img: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=700&h=480&q=80&fit=crop',
   },
 ]
 
