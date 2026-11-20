@@ -278,10 +278,10 @@ function ProductCard({ product, inEnquiry, onViewDetails, onToggleEnquiry }: Car
       </div>
 
       {/* Info */}
-      <div className="p-3 flex flex-col flex-1">
+      <div className="p-3">
         <div className="text-[#F2A71B] text-[9px] font-bold tracking-widest uppercase mb-0.5">{product.catNo}</div>
-        <h3 className="font-display font-semibold text-[#0E2A47] text-[11px] leading-snug mb-1 line-clamp-2 flex-1">{product.name}</h3>
-        <p className="text-[#8DA5BE] text-[10px] leading-relaxed mb-3 line-clamp-2">{product.specSummary}</p>
+        <h3 className="font-display font-semibold text-[#0E2A47] text-[11px] leading-snug mb-1 line-clamp-2">{product.name}</h3>
+        <p className="text-[#8DA5BE] text-[10px] leading-relaxed mb-2 line-clamp-2">{product.specSummary}</p>
         {/* Action row */}
         <div className="flex gap-2">
           <button
@@ -857,9 +857,9 @@ function SubcategoriesPage({ categoryLabel, onNavigateHome, onNavigateCategories
                         </div>
 
                         {/* Info area */}
-                        <div className="p-3 flex flex-col flex-1">
-                          <h3 className="font-display font-bold text-[#0E2A47] text-xs leading-snug mb-1 line-clamp-2">{sub}</h3>
-                          <p className="text-[#8DA5BE] text-[10px] mb-3 flex-1">{categoryLabel}</p>
+                        <div className="p-3">
+                          <h3 className="font-display font-bold text-[#0E2A47] text-xs leading-snug mb-0.5 line-clamp-2">{sub}</h3>
+                          <p className="text-[#8DA5BE] text-[10px] mb-2">{categoryLabel}</p>
                           <button className={`w-full py-1.5 rounded-lg text-[11px] font-bold tracking-wide transition-colors duration-150 ${isHov ? 'bg-[#F2A71B] text-[#0E2A47]' : 'bg-[#F2F4F7] text-[#5B6B78]'}`}>
                             View Series →
                           </button>

@@ -66,7 +66,7 @@ const INDUSTRIES_4 = [
   {
     name: 'Oil & Gas',
     slug: 'oil-gas',
-    img: '/industry-images/oil-gas.jpg',
+    img: '/industry-images/oil-gas.webp',
   },
   {
     name: 'Pharmaceuticals',
@@ -76,7 +76,7 @@ const INDUSTRIES_4 = [
   {
     name: 'Power Plants',
     slug: 'power-plants',
-    img: '/industry-images/power-plants.jpg',
+    img: '/industry-images/power-plants.webp',
   },
   {
     name: 'Automobiles',
